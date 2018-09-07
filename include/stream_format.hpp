@@ -427,11 +427,11 @@ namespace stream_format
 
     //template IO
     template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
-    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&...args)
+    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&... args)
     {
         return internal::scan(stream, fmt, args...);
     }
-    template <typename Char,typename...Args,typename Traits=std::char_traits<Char>>
+    template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
     SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         return internal::print(stream, fmt, args...);
