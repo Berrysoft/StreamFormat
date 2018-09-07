@@ -111,6 +111,7 @@ namespace stream_format
         template <io_state IOState, typename T>
         using forward_arg_var_t = typename forward_arg<IOState, T>::var_type;
 
+        //A packed arg.
         template <io_state IOState, typename T, typename Char, typename Traits = std::char_traits<Char>>
         class arg_io
         {
@@ -178,6 +179,8 @@ namespace stream_format
         SF_CHAR_TEMPLATE(right_brace, '}')
         SF_STR_TEMPLATE(right_double_brace, "}}")
 
+        SF_CHAR_TEMPLATE(colon, ':')
+
         //Input/Output string slice.
         template <io_state, typename Char, typename Traits = std::char_traits<Char>>
         class string_view_io;
@@ -241,11 +244,6 @@ namespace stream_format
 
         private:
             string_view_type arg;
-
-        public:
-            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
-
-        private:
             std::vector<string_view_type> split_by_double_brace()
             {
                 std::vector<string_view_type> result;
@@ -263,6 +261,7 @@ namespace stream_format
             }
 
         public:
+            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& os)
             {
                 if (os)
@@ -273,6 +272,32 @@ namespace stream_format
                     }
                 }
                 return os;
+            }
+        };
+
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
+        class format_arg_io
+        {
+        public:
+            typedef arg_t<IOState, Char, Traits> arg_type;
+            typedef arg_stream_t<IOState, Char, Traits> stream_type;
+            typedef std::basic_string_view<Char, Traits> string_view_type;
+
+        private:
+            arg_type& ori_arg;
+            string_view_type fmt_str;
+
+        public:
+            format_arg_io(arg_type& ori, string_view_type&& str) : ori_arg(ori), fmt_str(str) {}
+            stream_type& operator()(stream_type& stream)
+            {
+                if (fmt_str == "x")
+                {
+                    std::ios::fmtflags oldf = stream.setf(std::ios_base::hex, std::ios_base::basefield);
+                    ori_arg(stream);
+                    stream.setf(oldf);
+                }
+                return stream;
             }
         };
 
@@ -346,9 +371,19 @@ namespace stream_format
                         else
                         {
                             state = text;
-                            int_type i = std::stoull(fmt.substr(offset, index - offset).data());
-                            offset = index + 1;
-                            return args[i];
+                            int_type ci = fmt.find(colon<Char>(), offset);
+                            if (ci != string_view_type::npos)
+                            {
+                                std::size_t i = std::stoull(fmt.substr(offset, ci - offset).data());
+                                offset = index + 1;
+                                return format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1));
+                            }
+                            else
+                            {
+                                std::size_t i = std::stoull(fmt.substr(offset, index - offset).data());
+                                offset = index + 1;
+                                return args[i];
+                            }
                         }
                     }
                     }
