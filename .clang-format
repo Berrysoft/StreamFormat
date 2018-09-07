@@ -1,14 +1,23 @@
 Language: Cpp
-
+Standard: Cpp11
 AccessModifierOffset: -4
+AlignEscapedNewlinesLeft: true
+AlignTrailingComments: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortFunctionsOnASingleLine: true
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: true
+BinPackParameters: false
+BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: false
 ColumnLimit: 0
 Cpp11BracedListStyle: false
 IndentWidth: 4
+NamespaceIndentation: All
 PointerBindsToType: true
 TabWidth: 4
 UseTab: Never
