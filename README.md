@@ -4,7 +4,7 @@ A C++ format IO library, based on standard streams.
 The usage of `print` function is like .NET `Console.Write`:
 ``` c++
 print("Hello, {0}!\n", "world");            //Hello, world!
-print("The meaning of life: {0}.\n", 42);   //The meaning of life: 42.
+print("Meaning of the life: {0}.\n", 42);   //Meaning of the life: 42.
 print("{0}{1}{0}", "abra", "cad");          //abracadabra
 ```
 And you can `print` to other streams:

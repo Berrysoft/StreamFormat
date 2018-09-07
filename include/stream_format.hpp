@@ -275,6 +275,12 @@ namespace stream_format
             }
         };
 
+        //Parse format string and set stream flag.
+        //D -> dec
+        //E -> scientific
+        //F -> fixed
+        //O -> oct
+        //X -> hex
         template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
         class format_arg_io
         {
@@ -366,7 +372,7 @@ namespace stream_format
                         index = fmt.find(right_brace<Char>(), offset);
                         if (index == string_view_type::npos)
                         {
-                            throw std::out_of_range("No \"}\" found after \"{\".");
+                            throw std::out_of_range("No \"}\" was found after \"{\".");
                         }
                         else
                         {
