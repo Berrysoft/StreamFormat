@@ -185,14 +185,15 @@ namespace stream_format
         class string_view_io<input, Char, Traits>
         {
         public:
+            typedef Traits traits_type;
             typedef arg_stream_t<input, Char, Traits> stream_type;
-            typedef typename std::basic_string_view<Char, Traits>::traits_type traits_type;
+            typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
-            std::basic_string_view<Char, Traits> arg;
+            string_view_type arg;
 
         public:
-            string_view_io(std::basic_string_view<Char, Traits> arg) : arg(arg) {}
+            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& is)
             {
                 if (is)
@@ -236,12 +237,13 @@ namespace stream_format
         {
         public:
             typedef arg_stream_t<output, Char, Traits> stream_type;
+            typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
-            std::basic_string_view<Char, Traits> arg;
+            string_view_type arg;
 
         public:
-            string_view_io(std::basic_string_view<Char, Traits> arg) : arg(arg) {}
+            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& os)
             {
                 if (os)
