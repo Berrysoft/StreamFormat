@@ -185,7 +185,6 @@ namespace stream_format
         class string_view_io<input, Char, Traits>
         {
         public:
-            typedef Traits traits_type;
             typedef arg_stream_t<input, Char, Traits> stream_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
@@ -200,13 +199,13 @@ namespace stream_format
                 {
                     for (const Char& c : arg)
                     {
-                        if (traits_type::eq(c, space<Char>()))
+                        if (Traits::eq(c, space<Char>()))
                         {
                             while (true)
                             {
                                 auto t = is.peek();
-                                if (t != traits_type::eof() &&
-                                    (traits_type::eq(t, space<Char>()) || traits_type::eq(t, tab<Char>()) || traits_type::eq(t, cr<Char>()) || traits_type::eq(t, lf<Char>())))
+                                if (t != Traits::eof() &&
+                                    (Traits::eq(t, space<Char>()) || Traits::eq(t, tab<Char>()) || Traits::eq(t, cr<Char>()) || Traits::eq(t, lf<Char>())))
                                 {
                                     is.get();
                                 }
@@ -221,7 +220,7 @@ namespace stream_format
                             while (true)
                             {
                                 auto t = is.get();
-                                if (t == traits_type::eof() || traits_type::eq(t, c))
+                                if (t == Traits::eof() || Traits::eq(t, c))
                                 {
                                     break;
                                 }
@@ -238,6 +237,7 @@ namespace stream_format
         public:
             typedef arg_stream_t<output, Char, Traits> stream_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef typename string_view_type::size_type int_type;
 
         private:
             string_view_type arg;
@@ -249,7 +249,7 @@ namespace stream_format
             std::vector<string_view_type> split_by_double_brace()
             {
                 std::vector<string_view_type> result;
-                std::size_t index = 0, offset = 0;
+                int_type index = 0, offset = 0;
                 while ((index = arg.find(right_double_brace<Char>(), offset)) != string_view_type::npos)
                 {
                     result.push_back(arg.substr(offset, index - offset + 1));
@@ -290,13 +290,14 @@ namespace stream_format
             typedef arg_t<IOState, Char, Traits> arg_type;
             typedef arg_list_t<IOState, Char, Traits> arg_list_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef typename string_view_type::size_type int_type;
             typedef string_view_io<IOState, Char, Traits> string_view_io_type;
 
         private:
             const string_view_type& fmt;
             arg_list_type args;
-            std::size_t offset, index;
-            const std::size_t length;
+            int_type offset, index;
+            const int_type length;
             format_string_token state;
 
         public:
@@ -313,7 +314,7 @@ namespace stream_format
                     case text:
                     {
                         index = fmt.find(left_brace<Char>(), offset);
-                        std::size_t off = offset;
+                        int_type off = offset;
                         if (index != string_view_type::npos)
                         {
                             if (index + 1 < length && fmt[index + 1] == left_brace<Char>())
@@ -329,7 +330,7 @@ namespace stream_format
                         {
                             index = length;
                         }
-                        std::size_t len = index - offset;
+                        int_type len = index - offset;
                         offset = index + 1;
                         if (len <= 0)
                             continue;
@@ -345,7 +346,7 @@ namespace stream_format
                         else
                         {
                             state = text;
-                            std::size_t i = std::stoull(fmt.substr(offset, index - offset).data());
+                            int_type i = std::stoull(fmt.substr(offset, index - offset).data());
                             offset = index + 1;
                             return args[i];
                         }
@@ -380,6 +381,17 @@ namespace stream_format
         }
     } // namespace internal
 
+    //char IO
+    template <typename... Args>
+    SF_CONSTEXPR std::istream& scan(std::istream& is, std::string_view fmt, Args&... args)
+    {
+        return internal::scan(is, fmt, args...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&... args)
+    {
+        return scan(std::cin, fmt, args...);
+    }
     template <typename... Args>
     SF_CONSTEXPR std::ostream& print(std::ostream& os, std::string_view fmt, Args&&... args)
     {
@@ -391,17 +403,17 @@ namespace stream_format
         return print(std::cout, fmt, args...);
     }
 
+    //wchar_t IO
     template <typename... Args>
-    SF_CONSTEXPR std::istream& scan(std::istream& is, std::string_view fmt, Args&... args)
+    SF_CONSTEXPR std::wistream& scan(std::wistream& is, std::wstring_view fmt, Args&... args)
     {
         return internal::scan(is, fmt, args...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&... args)
+    SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&... args)
     {
-        return scan(std::cin, fmt, args...);
+        return scan(std::wcin, fmt, args...);
     }
-
     template <typename... Args>
     SF_CONSTEXPR std::wostream& print(std::wostream& os, std::wstring_view fmt, Args&&... args)
     {
@@ -413,15 +425,16 @@ namespace stream_format
         return print(std::wcout, fmt, args...);
     }
 
-    template <typename... Args>
-    SF_CONSTEXPR std::wistream& scan(std::wistream& is, std::wstring_view fmt, Args&... args)
+    //template IO
+    template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
+    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&...args)
     {
-        return internal::scan(is, fmt, args...);
+        return internal::scan(stream, fmt, args...);
     }
-    template <typename... Args>
-    SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&... args)
+    template <typename Char,typename...Args,typename Traits=std::char_traits<Char>>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
-        return scan(std::wcin, fmt, args...);
+        return internal::print(stream, fmt, args...);
     }
 } // namespace stream_format
 #endif // SF_CXX17
