@@ -244,11 +244,33 @@ namespace stream_format
 
         public:
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
+
+        private:
+            std::vector<string_view_type> split_by_double_brace()
+            {
+                std::vector<string_view_type> result;
+                std::size_t index = 0, offset = 0;
+                while ((index = arg.find(right_double_brace<Char>(), offset)) != string_view_type::npos)
+                {
+                    result.push_back(arg.substr(offset, index - offset + 1));
+                    offset = index + 2;
+                }
+                if (arg.length() > offset)
+                {
+                    result.push_back(arg.substr(offset));
+                }
+                return result;
+            }
+
+        public:
             stream_type& operator()(stream_type& os)
             {
                 if (os)
                 {
-                    return os.write(&arg.front(), arg.length());
+                    for (auto& s : split_by_double_brace())
+                    {
+                        os.write(s.data(), s.length());
+                    }
                 }
                 return os;
             }
@@ -258,8 +280,7 @@ namespace stream_format
         enum format_string_token
         {
             text,
-            number,
-            brace
+            number
         };
         //A pack of format string and arguments.
         template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
@@ -290,41 +311,32 @@ namespace stream_format
                     switch (state)
                     {
                     case text:
+                    {
                         index = fmt.find(left_brace<Char>(), offset);
+                        std::size_t off = offset;
                         if (index != string_view_type::npos)
                         {
-                            if (index + 1 < length)
+                            if (index + 1 < length && fmt[index + 1] == left_brace<Char>())
                             {
-                                if (fmt[index + 1] == left_brace<Char>())
-                                {
-                                    state = brace;
-                                    std::size_t off = offset;
-                                    std::size_t len = index - offset + 1;
-                                    offset = index + 2;
-                                    if (len <= 0)
-                                        continue;
-                                    return string_view_io_type(fmt.substr(off, len));
-                                }
+                                index++;
                             }
-                            state = number;
-                            std::size_t off = offset;
-                            std::size_t len = index - offset;
-                            offset = index + 1;
-                            if (len <= 0)
-                                continue;
-                            return string_view_io_type(fmt.substr(off, len));
+                            else
+                            {
+                                state = number;
+                            }
                         }
                         else
                         {
-                            std::size_t off = offset;
-                            std::size_t len = length - offset;
-                            offset = length;
-                            if (len <= 0)
-                                continue;
-                            return string_view_io_type(fmt.substr(off, len));
+                            index = length;
                         }
-                        break;
+                        std::size_t len = index - offset;
+                        offset = index + 1;
+                        if (len <= 0)
+                            continue;
+                        return string_view_io_type(fmt.substr(off, len));
+                    }
                     case number:
+                    {
                         index = fmt.find(right_brace<Char>(), offset);
                         if (index == string_view_type::npos)
                         {
@@ -337,24 +349,7 @@ namespace stream_format
                             offset = index + 1;
                             return args[i];
                         }
-                        break;
-                    case brace:
-                        index = fmt.find(right_double_brace<Char>(), offset);
-                        if (index == string_view_type::npos)
-                        {
-                            throw std::out_of_range("No \"}}\" found after \"{{\".");
-                        }
-                        else
-                        {
-                            state = text;
-                            std::size_t off = offset;
-                            std::size_t len = index - offset + 1;
-                            offset = index + 2;
-                            if (len <= 0)
-                                continue;
-                            return string_view_io_type(fmt.substr(off, len));
-                        }
-                        break;
+                    }
                     }
                     break;
                 }
