@@ -14,7 +14,7 @@
 #endif // C++17
 
 #ifndef SF_CONSTEXPR
-#ifdef SF_CXX14
+#if defined(SF_CXX14) || _MSC_VER >= 1910
 #define SF_CONSTEXPR constexpr
 #else
 #define SF_CONSTEXPR inline
@@ -22,7 +22,7 @@
 #endif // !SF_CONSTEXPR
 
 #ifndef SF_IF_CONSTEXPR
-#ifdef SF_CXX17
+#if defined(SF_CXX17) || _MSC_VER >= 1911
 #define SF_IF_CONSTEXPR if constexpr
 #else
 #define SF_IF_CONSTEXPR if
@@ -30,14 +30,14 @@
 #endif // !SF_IF_CONSTEXPR
 
 #ifndef SF_NOEXCEPT
-#ifdef SF_CXX11
+#if defined(SF_CXX11) || _MSC_VER >= 1900
 #define SF_NOEXCEPT noexcept
 #else
 #define SF_NOEXCEPT throw()
 #endif // SF_CXX11
 #endif // !SF_NOEXCEPT
 
-#ifdef SF_CXX17
+#if defined(SF_CXX17) || _MSC_VER >= 1900
 
 #include <functional>
 #include <iostream>
@@ -56,67 +56,68 @@ namespace stream_format
         };
 
         //Define types.
-        template <typename Char, io_state>
-        struct arg;
-        template <typename Char>
-        struct arg<Char, output>
+        template <io_state, typename Char, typename Traits>
+        struct arg_stream;
+        template <typename Char, typename Traits>
+        struct arg_stream<input, Char, Traits>
         {
-            typedef std::basic_ostream<Char> stream_type;
-            typedef std::function<stream_type&(stream_type&)> type;
-            typedef std::vector<type> list_type;
+            typedef std::basic_istream<Char, Traits> type;
         };
-        template <typename Char>
-        struct arg<Char, input>
+        template <typename Char, typename Traits>
+        struct arg_stream<output, Char, Traits>
         {
-            typedef std::basic_istream<Char> stream_type;
+            typedef std::basic_ostream<Char, Traits> type;
+        };
+
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
+        using arg_stream_t = typename arg_stream<IOState, Char, Traits>::type;
+
+        template <io_state IOState, typename Char, typename Traits>
+        struct arg
+        {
+            typedef arg_stream_t<IOState, Char, Traits> stream_type;
             typedef std::function<stream_type&(stream_type&)> type;
             typedef std::vector<type> list_type;
         };
 
-        //The type of an argument or a slice of string,
-        //which could be invoked.
-        template <typename Char, io_state IOState>
-        using arg_t = typename arg<Char, IOState>::type;
-        //An std::vector contains arg_t.
-        template <typename Char, io_state IOState>
-        using arg_list_t = typename arg<Char, IOState>::list_type;
-        //The type of stream for specified Char type.
-        template <typename Char, io_state IOState>
-        using arg_stream_t = typename arg<Char, IOState>::stream_type;
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
+        using arg_t = typename arg<IOState, Char, Traits>::type;
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
+        using arg_list_t = typename arg<IOState, Char, Traits>::list_type;
 
-        template <typename T, io_state>
+        template <io_state, typename T>
         struct forward_arg;
         template <typename T>
-        struct forward_arg<T, output>
-        {
-            typedef T&& type;
-            typedef T var_type;
-        };
-        template <typename T>
-        struct forward_arg<T, input>
+        struct forward_arg<input, T>
         {
             typedef T& type;
             typedef T& var_type;
         };
-        template <typename T, io_state IOState>
-        struct forward_arg<T*, IOState>
+        template <typename T>
+        struct forward_arg<output, T>
+        {
+            typedef T&& type;
+            typedef T var_type;
+        };
+        template <io_state IOState, typename T>
+        struct forward_arg<IOState, T*>
         {
             typedef T* type;
             typedef T* var_type;
         };
 
-        template <typename T, io_state IOState>
-        using forward_arg_t = typename forward_arg<T, IOState>::type;
-        template <typename T, io_state IOState>
-        using forward_arg_var_t = typename forward_arg<T, IOState>::var_type;
+        template <io_state IOState, typename T>
+        using forward_arg_t = typename forward_arg<IOState, T>::type;
+        template <io_state IOState, typename T>
+        using forward_arg_var_t = typename forward_arg<IOState, T>::var_type;
 
-        template <typename Char, typename T, io_state IOState>
+        template <io_state IOState, typename T, typename Char, typename Traits = std::char_traits<Char>>
         class arg_io
         {
         public:
-            typedef forward_arg_t<T, IOState> f_arg_type;
-            typedef forward_arg_var_t<T, IOState> f_arg_var_type;
-            typedef arg_stream_t<Char, IOState> stream_type;
+            typedef forward_arg_t<IOState, T> f_arg_type;
+            typedef forward_arg_var_t<IOState, T> f_arg_var_type;
+            typedef arg_stream_t<IOState, Char, Traits> stream_type;
 
         private:
             f_arg_var_type m_arg;
@@ -125,17 +126,17 @@ namespace stream_format
             arg_io(f_arg_type arg) : m_arg(arg) {}
             stream_type& operator()(stream_type& stream)
             {
-                SF_IF_CONSTEXPR(IOState == output)
-                {
-                    return stream << m_arg;
-                }
-                else SF_IF_CONSTEXPR(IOState == input)
+                SF_IF_CONSTEXPR(IOState == input)
                 {
                     return stream >> m_arg;
                 }
+                else SF_IF_CONSTEXPR(IOState == output)
+                {
+                    return stream << m_arg;
+                }
                 else
                 {
-                    return {};
+                    return stream;
                 }
             }
         };
@@ -178,40 +179,20 @@ namespace stream_format
         SF_STR_TEMPLATE(right_double_brace, "}}")
 
         //Input/Output string slice.
-        template <typename Char, io_state>
+        template <io_state, typename Char, typename Traits = std::char_traits<Char>>
         class string_view_io;
-        template <typename Char>
-        class string_view_io<Char, output>
+        template <typename Char, typename Traits>
+        class string_view_io<input, Char, Traits>
         {
         public:
-            typedef arg_stream_t<Char, output> stream_type;
+            typedef arg_stream_t<input, Char, Traits> stream_type;
+            typedef typename std::basic_string_view<Char, Traits>::traits_type traits_type;
 
         private:
-            std::basic_string_view<Char> arg;
+            std::basic_string_view<Char, Traits> arg;
 
         public:
-            string_view_io(std::basic_string_view<Char> arg) : arg(arg) {}
-            stream_type& operator()(stream_type& os)
-            {
-                if (os)
-                {
-                    return os.write(&arg.front(), arg.length());
-                }
-                return os;
-            }
-        };
-        template <typename Char>
-        class string_view_io<Char, input>
-        {
-        public:
-            typedef arg_stream_t<Char, input> stream_type;
-            typedef typename std::basic_string_view<Char>::traits_type traits_type;
-
-        private:
-            std::basic_string_view<Char> arg;
-
-        public:
-            string_view_io(std::basic_string_view<Char> arg) : arg(arg) {}
+            string_view_io(std::basic_string_view<Char, Traits> arg) : arg(arg) {}
             stream_type& operator()(stream_type& is)
             {
                 if (is)
@@ -222,11 +203,11 @@ namespace stream_format
                         {
                             while (true)
                             {
-                                char t = is.peek();
-                                if (traits_type::eq(t, space<Char>()) || traits_type::eq(t, tab<Char>()) || traits_type::eq(t, cr<Char>()) || traits_type::eq(t, lf<Char>()))
+                                auto t = is.peek();
+                                if (t != traits_type::eof() &&
+                                    (traits_type::eq(t, space<Char>()) || traits_type::eq(t, tab<Char>()) || traits_type::eq(t, cr<Char>()) || traits_type::eq(t, lf<Char>())))
                                 {
-                                    if (!is.get())
-                                        return is;
+                                    is.get();
                                 }
                                 else
                                 {
@@ -236,17 +217,38 @@ namespace stream_format
                         }
                         else
                         {
-                            while (!traits_type::eq(is.peek(), c))
+                            while (true)
                             {
-                                if (!is.get())
-                                    return is;
+                                auto t = is.get();
+                                if (t == traits_type::eof() || traits_type::eq(t, c))
+                                {
+                                    break;
+                                }
                             }
-                            if (!is.get())
-                                return is;
                         }
                     }
                 }
                 return is;
+            }
+        };
+        template <typename Char, typename Traits>
+        class string_view_io<output, Char, Traits>
+        {
+        public:
+            typedef arg_stream_t<output, Char, Traits> stream_type;
+
+        private:
+            std::basic_string_view<Char, Traits> arg;
+
+        public:
+            string_view_io(std::basic_string_view<Char, Traits> arg) : arg(arg) {}
+            stream_type& operator()(stream_type& os)
+            {
+                if (os)
+                {
+                    return os.write(&arg.front(), arg.length());
+                }
+                return os;
             }
         };
 
@@ -258,23 +260,25 @@ namespace stream_format
             brace
         };
         //A pack of format string and arguments.
-        template <typename Char, io_state IOState>
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
         class format_string_view
         {
         public:
-            typedef arg_t<Char, IOState> arg_type;
-            typedef arg_list_t<Char, IOState> arg_list_type;
+            typedef arg_t<IOState, Char, Traits> arg_type;
+            typedef arg_list_t<IOState, Char, Traits> arg_list_type;
+            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef string_view_io<IOState, Char, Traits> string_view_io_type;
 
         private:
-            const std::basic_string_view<Char>& fmt;
+            const string_view_type& fmt;
             arg_list_type args;
             std::size_t offset, index;
             const std::size_t length;
             format_string_token state;
 
         public:
-            SF_CONSTEXPR format_string_view(const std::basic_string_view<Char>& fmt, arg_list_type&& args)
-                : fmt(fmt), args(move(args)), offset(0), index(0), length(fmt.length()), state(text)
+            SF_CONSTEXPR format_string_view(const string_view_type& fmt, arg_list_type&& args)
+                : fmt(fmt), args(std::move(args)), offset(0), index(0), length(fmt.length()), state(text)
             {
             }
             arg_type move_next()
@@ -285,7 +289,7 @@ namespace stream_format
                     {
                     case text:
                         index = fmt.find(left_brace<Char>(), offset);
-                        if (index != std::basic_string_view<Char>::npos)
+                        if (index != string_view_type::npos)
                         {
                             if (index + 1 < length)
                             {
@@ -297,7 +301,7 @@ namespace stream_format
                                     offset = index + 2;
                                     if (len <= 0)
                                         continue;
-                                    return string_view_io<Char, IOState>(fmt.substr(off, len));
+                                    return string_view_io_type(fmt.substr(off, len));
                                 }
                             }
                             state = number;
@@ -306,7 +310,7 @@ namespace stream_format
                             offset = index + 1;
                             if (len <= 0)
                                 continue;
-                            return string_view_io<Char, IOState>(fmt.substr(off, len));
+                            return string_view_io_type(fmt.substr(off, len));
                         }
                         else
                         {
@@ -315,12 +319,12 @@ namespace stream_format
                             offset = length;
                             if (len <= 0)
                                 continue;
-                            return string_view_io<Char, IOState>(fmt.substr(off, len));
+                            return string_view_io_type(fmt.substr(off, len));
                         }
                         break;
                     case number:
                         index = fmt.find(right_brace<Char>(), offset);
-                        if (index == std::basic_string_view<Char>::npos)
+                        if (index == string_view_type::npos)
                         {
                             throw std::out_of_range("No \"}\" found after \"{\".");
                         }
@@ -334,7 +338,7 @@ namespace stream_format
                         break;
                     case brace:
                         index = fmt.find(right_double_brace<Char>(), offset);
-                        if (index == std::basic_string_view<Char>::npos)
+                        if (index == string_view_type::npos)
                         {
                             throw std::out_of_range("No \"}}\" found after \"{{\".");
                         }
@@ -346,7 +350,7 @@ namespace stream_format
                             offset = index + 2;
                             if (len <= 0)
                                 continue;
-                            return string_view_io<Char, IOState>(fmt.substr(off, len));
+                            return string_view_io_type(fmt.substr(off, len));
                         }
                         break;
                     }
@@ -357,25 +361,25 @@ namespace stream_format
         };
 
         //Iterates the format string and arguments.
-        template <typename Char, io_state IOState>
-        SF_CONSTEXPR arg_stream_t<Char, IOState>& format(arg_stream_t<Char, IOState>& stream, format_string_view<Char, IOState> fmt)
+        template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
+        SF_CONSTEXPR arg_stream_t<IOState, Char, Traits>& format(arg_stream_t<IOState, Char, Traits>& stream, format_string_view<IOState, Char, Traits> fmt)
         {
-            arg_t<Char, IOState> arg;
+            arg_t<IOState, Char, Traits> arg;
             while (arg = fmt.move_next())
             {
                 arg(stream);
             }
             return stream;
         }
-        template <typename Char, typename... Args>
-        SF_CONSTEXPR arg_stream_t<Char, output>& print(arg_stream_t<Char, output>& stream, const std::basic_string_view<Char>& fmt, Args&&... args)
+        template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
+        SF_CONSTEXPR arg_stream_t<input, Char, Traits>& scan(arg_stream_t<input, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&... args)
         {
-            return format(stream, format_string_view<Char, output>(fmt, arg_list_t<Char, output>{ arg_io<Char, Args, output>(static_cast<forward_arg_t<Args, output>>(args))... }));
+            return format(stream, format_string_view<input, Char, Traits>(fmt, arg_list_t<input, Char>{ arg_io<input, Args, Char, Traits>(static_cast<forward_arg_t<input, Args>>(args))... }));
         }
-        template <typename Char, typename... Args>
-        SF_CONSTEXPR arg_stream_t<Char, input>& scan(arg_stream_t<Char, input>& stream, const std::basic_string_view<Char>& fmt, Args&... args)
+        template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
+        SF_CONSTEXPR arg_stream_t<output, Char, Traits>& print(arg_stream_t<output, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
-            return format(stream, format_string_view<Char, input>(fmt, arg_list_t<Char, input>{ arg_io<Char, Args, input>(static_cast<forward_arg_t<Args, input>>(args))... }));
+            return format(stream, format_string_view<output, Char, Traits>(fmt, arg_list_t<output, Char, Traits>{ arg_io<output, Args, Char, Traits>(static_cast<forward_arg_t<output, Args>>(args))... }));
         }
     } // namespace internal
 

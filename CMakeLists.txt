@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.1)
+project(StreamFormat)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+include_directories(include)
+
+enable_testing()
+add_executable(basic_print test/basic_print.cpp)
+add_test(test_basic_print basic_print)
+set_tests_properties(test_basic_print PROPERTIES PASS_REGULAR_EXPRESSION "Hello, world!")
