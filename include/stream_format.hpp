@@ -21,6 +21,14 @@
 #endif // SF_CXX14
 #endif // !SF_CONSTEXPR
 
+#ifndef SF_IF_CONSTEXPR
+#ifdef SF_CXX17
+#define SF_IF_CONSTEXPR constexpr
+#else
+#define SF_IF_CONSTEXPR
+#endif // SF_CXX17
+#endif // !SF_IF_CONSTEXPR
+
 #ifndef SF_NOEXCEPT
 #ifdef SF_CXX11
 #define SF_NOEXCEPT noexcept
@@ -121,11 +129,11 @@ public:
     arg_io(f_arg_type arg) : m_arg(arg) {}
     stream_type& operator()(stream_type& stream)
     {
-        if constexpr (IOState == output)
+        if SF_IF_CONSTEXPR (IOState == output)
         {
             return stream << m_arg;
         }
-        else if constexpr (IOState == input)
+        else if SF_IF_CONSTEXPR (IOState == input)
         {
             return stream >> m_arg;
         }
