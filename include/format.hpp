@@ -306,6 +306,7 @@ namespace sf
         //D -> dec
         //E -> scientific
         //F -> fixed
+        //G -> <nop>/uppercase
         //I -> internal
         //L -> left
         //O -> oct
@@ -389,7 +390,7 @@ namespace sf
                     stream.fill(' ');
                     stream.width(fmtf);
                 }
-                if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()))
+                if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cGEN<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()))
                 {
                     stream.setf(std::ios_base::uppercase);
                 }
@@ -404,12 +405,6 @@ namespace sf
             }
         };
 
-        //A flag indicates the type of current clice.
-        enum format_string_token
-        {
-            text,
-            number
-        };
         //A pack of format string and arguments.
         template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
         class format_string_view
@@ -426,20 +421,18 @@ namespace sf
             arg_list_type args;
             int_type offset, index;
             const int_type length;
-            format_string_token state;
+            bool in_number;
 
         public:
             SF_CONSTEXPR format_string_view(const string_view_type& fmt, arg_list_type&& args)
-                : fmt(fmt), args(std::move(args)), offset(0), index(0), length(fmt.length()), state(text)
+                : fmt(fmt), args(std::move(args)), offset(0), index(0), length(fmt.length()), in_number(false)
             {
             }
             arg_type move_next()
             {
                 while (offset < length)
                 {
-                    switch (state)
-                    {
-                    case text:
+                    if (!in_number)
                     {
                         index = fmt.find(left_brace<Char>(), offset);
                         int_type off = offset;
@@ -451,7 +444,7 @@ namespace sf
                             }
                             else
                             {
-                                state = number;
+                                in_number = true;
                             }
                         }
                         else
@@ -464,7 +457,7 @@ namespace sf
                             continue;
                         return string_view_io_type(fmt.substr(off, len));
                     }
-                    case number:
+                    else
                     {
                         index = fmt.find(right_brace<Char>(), offset);
                         if (index == string_view_type::npos)
@@ -473,7 +466,7 @@ namespace sf
                         }
                         else
                         {
-                            state = text;
+                            in_number = false;
                             int_type ci = fmt.find(colon<Char>(), offset);
                             if (ci != string_view_type::npos)
                             {
@@ -488,7 +481,6 @@ namespace sf
                                 return args[i];
                             }
                         }
-                    }
                     }
                     break;
                 }
@@ -554,7 +546,7 @@ namespace sf
     {
         return print(std::wcout, fmt, args...);
     }
-} // namespace stream_format
+} // namespace sf
 #endif // SF_CXX17
 
 #endif // !SF_FORMAT_HPP
