@@ -1,5 +1,5 @@
-﻿#ifndef SF_H
-#define SF_H
+﻿#ifndef SF_FORMAT_HPP
+#define SF_FORMAT_HPP
 
 #if __cplusplus >= 201103L
 #define SF_CXX11
@@ -44,7 +44,7 @@
 #include <string>
 #include <vector>
 
-namespace stream_format
+namespace sf
 {
     namespace internal
     {
@@ -121,19 +121,19 @@ namespace stream_format
             typedef arg_stream_t<IOState, Char, Traits> stream_type;
 
         private:
-            f_arg_var_type m_arg;
+            f_arg_var_type arg;
 
         public:
-            arg_io(f_arg_type arg) : m_arg(arg) {}
+            arg_io(f_arg_type arg) : arg(arg) {}
             stream_type& operator()(stream_type& stream)
             {
                 SF_IF_CONSTEXPR(IOState == input)
                 {
-                    return stream >> m_arg;
+                    return stream >> arg;
                 }
                 else SF_IF_CONSTEXPR(IOState == output)
                 {
-                    return stream << m_arg;
+                    return stream << arg;
                 }
                 else
                 {
@@ -178,8 +178,6 @@ namespace stream_format
         SF_STR_TEMPLATE(left_double_brace, "{{")
         SF_CHAR_TEMPLATE(right_brace, '}')
         SF_STR_TEMPLATE(right_double_brace, "}}")
-
-        SF_CHAR_TEMPLATE(colon, ':')
 
         //Input/Output string slice.
         template <io_state, typename Char, typename Traits = std::char_traits<Char>>
@@ -275,11 +273,43 @@ namespace stream_format
             }
         };
 
+        SF_CHAR_TEMPLATE(colon, ':')
+
+        SF_CHAR_TEMPLATE(cdec, 'd')
+        SF_CHAR_TEMPLATE(cDEC, 'D')
+
+        SF_CHAR_TEMPLATE(csci, 'e')
+        SF_CHAR_TEMPLATE(cSCI, 'E')
+
+        SF_CHAR_TEMPLATE(cfix, 'f')
+        SF_CHAR_TEMPLATE(cFIX, 'F')
+
+        SF_CHAR_TEMPLATE(cgen, 'g')
+        SF_CHAR_TEMPLATE(cGEN, 'G')
+
+        SF_CHAR_TEMPLATE(citn, 'i')
+        SF_CHAR_TEMPLATE(cITN, 'I')
+
+        SF_CHAR_TEMPLATE(clft, 'l')
+        SF_CHAR_TEMPLATE(cLFT, 'L')
+
+        SF_CHAR_TEMPLATE(coct, 'o')
+        SF_CHAR_TEMPLATE(cOCT, 'O')
+
+        SF_CHAR_TEMPLATE(crit, 'r')
+        SF_CHAR_TEMPLATE(cRIT, 'R')
+
+        SF_CHAR_TEMPLATE(chex, 'x')
+        SF_CHAR_TEMPLATE(cHEX, 'X')
+
         //Parse format string and set stream flag.
         //D -> dec
         //E -> scientific
         //F -> fixed
+        //I -> internal
+        //L -> left
         //O -> oct
+        //R -> right
         //X -> hex
         template <io_state IOState, typename Char, typename Traits = std::char_traits<Char>>
         class format_arg_io
@@ -290,19 +320,86 @@ namespace stream_format
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
-            arg_type& ori_arg;
-            string_view_type fmt_str;
+            arg_type& ori;
+            Char fmtc;
+            int fmtf;
 
         public:
-            format_arg_io(arg_type& ori, string_view_type&& str) : ori_arg(ori), fmt_str(str) {}
+            format_arg_io(arg_type& ori, const string_view_type& str) : ori(ori), fmtf(0)
+            {
+                if (str.empty())
+                {
+                    fmtc = cgen<Char>();
+                }
+                else
+                {
+                    fmtc = str[0];
+                    if (str.length() > 1)
+                    {
+                        fmtf = std::stoi(str.substr(1).data());
+                    }
+                }
+            }
             stream_type& operator()(stream_type& stream)
             {
-                if (fmt_str == "x")
+                std::ios_base::fmtflags oldf = -1;
+                if (Traits::eq(fmtc, cdec<Char>()) || Traits::eq(fmtc, cDEC<Char>()))
                 {
-                    std::ios::fmtflags oldf = stream.setf(std::ios_base::hex, std::ios_base::basefield);
-                    ori_arg(stream);
-                    stream.setf(oldf);
+                    oldf = stream.setf(std::ios_base::dec, std::ios_base::basefield);
+                    stream.fill('0');
+                    stream.width(fmtf);
                 }
+                else if (Traits::eq(fmtc, coct<Char>()) || Traits::eq(fmtc, cOCT<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::oct, std::ios_base::basefield);
+                    stream.fill('0');
+                    stream.width(fmtf);
+                }
+                else if (Traits::eq(fmtc, chex<Char>()) || Traits::eq(fmtc, cHEX<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::hex, std::ios_base::basefield);
+                    stream.fill('0');
+                    stream.width(fmtf);
+                }
+                else if (Traits::eq(fmtc, csci<Char>()) || Traits::eq(fmtc, cSCI<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::scientific, std::ios_base::floatfield);
+                    stream.precision(fmtf);
+                }
+                else if (Traits::eq(fmtc, cfix<Char>()) || Traits::eq(fmtc, cFIX<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::fixed, std::ios_base::floatfield);
+                    stream.precision(fmtf);
+                }
+                else if (Traits::eq(fmtc, clft<Char>()) || Traits::eq(fmtc, cLFT<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::left, std::ios_base::adjustfield);
+                    stream.fill(' ');
+                    stream.width(fmtf);
+                }
+                else if (Traits::eq(fmtc, crit<Char>()) || Traits::eq(fmtc, cRIT<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::right, std::ios_base::adjustfield);
+                    stream.fill(' ');
+                    stream.width(fmtf);
+                }
+                else if (Traits::eq(fmtc, citn<Char>()) || Traits::eq(fmtc, cITN<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::internal, std::ios_base::adjustfield);
+                    stream.fill(' ');
+                    stream.width(fmtf);
+                }
+                if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()))
+                {
+                    stream.setf(std::ios_base::uppercase);
+                }
+                else
+                {
+                    stream.unsetf(std::ios_base::uppercase);
+                }
+                ori(stream);
+                if ((int)oldf >= 0)
+                    stream.setf(oldf);
                 return stream;
             }
         };
@@ -443,6 +540,13 @@ namespace stream_format
     {
         return print(std::cout, fmt, args...);
     }
+    template <typename... Args>
+    SF_CONSTEXPR std::string sprint(std::string_view fmt, Args&&... args)
+    {
+        std::ostringstream oss;
+        print(oss, fmt, args...);
+        return oss.str();
+    }
 
     //wchar_t IO
     template <typename... Args>
@@ -465,6 +569,13 @@ namespace stream_format
     {
         return print(std::wcout, fmt, args...);
     }
+    template <typename...Args>
+    SF_CONSTEXPR std::wstring sprint(std::wstring_view fmt, Args&&...args)
+    {
+        std::wostringstream oss;
+        print(oss, fmt, args...);
+        return oss.str();
+    }
 
     //template IO
     template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
@@ -477,7 +588,14 @@ namespace stream_format
     {
         return internal::print(stream, fmt, args...);
     }
+    template <typename Char,typename...Args,typename Traits=std::char_traits<Char>>
+    SF_CONSTEXPR std::basic_string<Char, Traits> sprint(std::basic_string_view<Char, Traits> fmt, Args&&...args)
+    {
+        std::basic_ostringstream oss;
+        print(oss,fmt,args...);
+        return oss.str();
+    }
 } // namespace stream_format
 #endif // SF_CXX17
 
-#endif // SF_H
+#endif // SF_FORMAT_HPP

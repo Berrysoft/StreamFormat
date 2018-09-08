@@ -32,7 +32,7 @@ print("The HTTP version: {0}", ver);
 ```
 ## Declaration
 ``` c++
-namespace stream_format
+namespace sf
 {
     //char IO
     template <typename... Args>
