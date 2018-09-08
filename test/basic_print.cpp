@@ -1,6 +1,6 @@
-#include <stream_format.hpp>
+#include <format.hpp>
 
-using namespace stream_format;
+using namespace sf;
 
 int main()
 {

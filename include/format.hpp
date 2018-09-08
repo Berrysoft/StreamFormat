@@ -1,15 +1,15 @@
 ﻿#ifndef SF_FORMAT_HPP
 #define SF_FORMAT_HPP
 
-#if __cplusplus >= 201103L
+#if !defined(SF_CXX11) && __cplusplus >= 201103L
 #define SF_CXX11
 #endif // C++11
 
-#if __cplusplus >= 201402L
+#if !defined(SF_CXX14) && __cplusplus >= 201402L
 #define SF_CXX14
 #endif // C++14
 
-#if __cplusplus >= 201703L
+#if !defined(SF_CXX17) && __cplusplus >= 201703L
 #define SF_CXX17
 #endif // C++17
 
@@ -37,7 +37,7 @@
 #endif // SF_CXX11
 #endif // !SF_NOEXCEPT
 
-#if defined(SF_CXX17) || _MSC_VER >= 1900
+#if defined(SF_CXX17) || _MSC_VER >= 1910
 
 #include <functional>
 #include <iostream>
@@ -342,7 +342,7 @@ namespace sf
             }
             stream_type& operator()(stream_type& stream)
             {
-                std::ios_base::fmtflags oldf = -1;
+                std::ios_base::fmtflags oldf;
                 if (Traits::eq(fmtc, cdec<Char>()) || Traits::eq(fmtc, cDEC<Char>()))
                 {
                     oldf = stream.setf(std::ios_base::dec, std::ios_base::basefield);
@@ -398,7 +398,7 @@ namespace sf
                     stream.unsetf(std::ios_base::uppercase);
                 }
                 ori(stream);
-                if ((int)oldf >= 0)
+                if (oldf)
                     stream.setf(oldf);
                 return stream;
             }
@@ -519,83 +519,42 @@ namespace sf
         }
     } // namespace internal
 
-    //char IO
-    template <typename... Args>
-    SF_CONSTEXPR std::istream& scan(std::istream& is, std::string_view fmt, Args&... args)
+    //template IO
+    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
+    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&... args)
     {
-        return internal::scan(is, fmt, args...);
+        return internal::scan(stream, fmt, args...);
     }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    {
+        return internal::print(stream, fmt, args...);
+    }
+
+    //char IO
     template <typename... Args>
     SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&... args)
     {
         return scan(std::cin, fmt, args...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::ostream& print(std::ostream& os, std::string_view fmt, Args&&... args)
-    {
-        return internal::print(os, fmt, args...);
-    }
-    template <typename... Args>
     SF_CONSTEXPR std::ostream& print(std::string_view fmt, Args&&... args)
     {
         return print(std::cout, fmt, args...);
     }
-    template <typename... Args>
-    SF_CONSTEXPR std::string sprint(std::string_view fmt, Args&&... args)
-    {
-        std::ostringstream oss;
-        print(oss, fmt, args...);
-        return oss.str();
-    }
 
     //wchar_t IO
-    template <typename... Args>
-    SF_CONSTEXPR std::wistream& scan(std::wistream& is, std::wstring_view fmt, Args&... args)
-    {
-        return internal::scan(is, fmt, args...);
-    }
     template <typename... Args>
     SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&... args)
     {
         return scan(std::wcin, fmt, args...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wostream& print(std::wostream& os, std::wstring_view fmt, Args&&... args)
-    {
-        return internal::print(os, fmt, args...);
-    }
-    template <typename... Args>
     SF_CONSTEXPR std::wostream& print(std::wstring_view fmt, Args&&... args)
     {
         return print(std::wcout, fmt, args...);
     }
-    template <typename...Args>
-    SF_CONSTEXPR std::wstring sprint(std::wstring_view fmt, Args&&...args)
-    {
-        std::wostringstream oss;
-        print(oss, fmt, args...);
-        return oss.str();
-    }
-
-    //template IO
-    template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
-    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&... args)
-    {
-        return internal::scan(stream, fmt, args...);
-    }
-    template <typename Char, typename... Args, typename Traits = std::char_traits<Char>>
-    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
-    {
-        return internal::print(stream, fmt, args...);
-    }
-    template <typename Char,typename...Args,typename Traits=std::char_traits<Char>>
-    SF_CONSTEXPR std::basic_string<Char, Traits> sprint(std::basic_string_view<Char, Traits> fmt, Args&&...args)
-    {
-        std::basic_ostringstream oss;
-        print(oss,fmt,args...);
-        return oss.str();
-    }
 } // namespace stream_format
 #endif // SF_CXX17
 
-#endif // SF_FORMAT_HPP
+#endif // !SF_FORMAT_HPP
