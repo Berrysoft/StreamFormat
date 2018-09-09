@@ -56,34 +56,33 @@ namespace sf
         };
 
         //Define types.
-        template <io_state, typename Char, typename Traits>
-        struct arg_stream;
+        template <io_state IOState, typename Char, typename Traits>
+        struct stream;
         template <typename Char, typename Traits>
-        struct arg_stream<input, Char, Traits>
+        struct stream<input, Char, Traits>
         {
             typedef std::basic_istream<Char, Traits> type;
         };
         template <typename Char, typename Traits>
-        struct arg_stream<output, Char, Traits>
+        struct stream<output, Char, Traits>
         {
             typedef std::basic_ostream<Char, Traits> type;
         };
 
         template <io_state IOState, typename Char, typename Traits>
-        using arg_stream_t = typename arg_stream<IOState, Char, Traits>::type;
+        using stream_t = typename stream<IOState, Char, Traits>::type;
 
-        template <io_state IOState, typename Char, typename Traits>
+        template <typename Stream>
         struct arg
         {
-            typedef arg_stream_t<IOState, Char, Traits> stream_type;
-            typedef std::function<stream_type&(stream_type&)> type;
+            typedef std::function<Stream&(Stream&)> type;
             typedef std::vector<type> list_type;
         };
 
-        template <io_state IOState, typename Char, typename Traits>
-        using arg_t = typename arg<IOState, Char, Traits>::type;
-        template <io_state IOState, typename Char, typename Traits>
-        using arg_list_t = typename arg<IOState, Char, Traits>::list_type;
+        template <typename Stream>
+        using arg_t = typename arg<Stream>::type;
+        template <typename Stream>
+        using arg_list_t = typename arg<Stream>::list_type;
 
         template <typename T>
         struct forward_arg
@@ -110,7 +109,7 @@ namespace sf
         public:
             typedef forward_arg_t<T> f_arg_type;
             typedef forward_arg_var_t<T> f_arg_var_type;
-            typedef arg_stream_t<IOState, Char, Traits> stream_type;
+            typedef stream_t<IOState, Char, Traits> stream_type;
 
         private:
             f_arg_var_type arg;
@@ -178,7 +177,7 @@ namespace sf
         class string_view_io<input, Char, Traits>
         {
         public:
-            typedef arg_stream_t<input, Char, Traits> stream_type;
+            typedef stream_t<input, Char, Traits> stream_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
@@ -228,7 +227,7 @@ namespace sf
         class string_view_io<output, Char, Traits>
         {
         public:
-            typedef arg_stream_t<output, Char, Traits> stream_type;
+            typedef stream_t<output, Char, Traits> stream_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
             typedef typename string_view_type::size_type int_type;
 
@@ -308,8 +307,8 @@ namespace sf
         class format_arg_io
         {
         public:
-            typedef arg_t<IOState, Char, Traits> arg_type;
-            typedef arg_stream_t<IOState, Char, Traits> stream_type;
+            typedef stream_t<IOState, Char, Traits> stream_type;
+            typedef arg_t<stream_type> arg_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
@@ -402,8 +401,9 @@ namespace sf
         class format_string_view
         {
         public:
-            typedef arg_t<IOState, Char, Traits> arg_type;
-            typedef arg_list_t<IOState, Char, Traits> arg_list_type;
+            typedef stream_t<IOState, Char, Traits> stream_type;
+            typedef arg_t<stream_type> arg_type;
+            typedef arg_list_t<stream_type> arg_list_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
             typedef typename string_view_type::size_type int_type;
             typedef string_view_io<IOState, Char, Traits> string_view_io_type;
@@ -482,9 +482,9 @@ namespace sf
 
         //Iterates the format string and arguments.
         template <io_state IOState, typename Char, typename Traits>
-        SF_CONSTEXPR arg_stream_t<IOState, Char, Traits>& format(arg_stream_t<IOState, Char, Traits>& stream, format_string_view<IOState, Char, Traits> fmt)
+        SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, format_string_view<IOState, Char, Traits> fmt)
         {
-            arg_t<IOState, Char, Traits> arg;
+            arg_t<stream_t<IOState, Char, Traits>> arg;
             while (arg = fmt.move_next())
             {
                 arg(stream);
@@ -492,9 +492,9 @@ namespace sf
             return stream;
         }
         template <io_state IOState, typename Char, typename Traits, typename... Args>
-        SF_CONSTEXPR arg_stream_t<IOState, Char, Traits>& format(arg_stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
+        SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
-            return format(stream, format_string_view<IOState, Char, Traits>(fmt, arg_list_t<IOState, Char, Traits>{ arg_io<IOState, Args, Char, Traits>(static_cast<forward_arg_t<Args>>(args))... }));
+            return format(stream, format_string_view<IOState, Char, Traits>(fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(static_cast<forward_arg_t<Args>>(args))... }));
         }
     } // namespace internal
 

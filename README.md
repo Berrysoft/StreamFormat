@@ -17,7 +17,7 @@ To make compilers happy, you may add an `s` or `sv` after some string literals.
 
 `print` returns the stream object you have just printed, while `sprint` returns a string:
 ``` c++
-std::string s = sprint("{0}{{{1}}}{0}", "abra", "cad");//abra{cad}abra
+std::string s = sprint("{0}{{{1}}}{0}", "123", "321");//123{321}123
 ```
 ## Scan
 `scan` function is a bit like `print`, and actually they share most of the codes:
