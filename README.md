@@ -47,19 +47,19 @@ namespace sf
 {
     //template IO
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&... args);
+    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args);
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
     constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args);
 
     //char IO
     template <typename... Args>
-    constexpr std::istream& scan(std::string_view fmt, Args&... args);
+    constexpr std::istream& scan(std::string_view fmt, Args&&... args);
     template <typename... Args>
     constexpr std::ostream& print(std::string_view fmt, Args&&... args);
 
     //wchar_t IO
     template <typename... Args>
-    constexpr std::wistream& scan(std::wstring_view fmt, Args&... args);
+    constexpr std::wistream& scan(std::wstring_view fmt, Args&&... args);
     template <typename... Args>
     constexpr std::wostream& print(std::wstring_view fmt, Args&&... args);
 } // namespace sf
@@ -69,7 +69,7 @@ namespace sf
 namespace sf
 {
     template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    constexpr std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&... args);
+    constexpr std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args);
     template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
     constexpr std::basic_string<Char, Traits, Alloc> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args);
 } // namespace sf

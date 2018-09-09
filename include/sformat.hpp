@@ -21,7 +21,7 @@
 namespace sf
 {
     template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&... args)
+    SF_CONSTEXPR std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         std::basic_istringstream<Char, Traits, Alloc> iss(str);
         scan(iss, fmt, args...);
