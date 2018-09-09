@@ -1,17 +1,7 @@
 #ifndef SF_SFORMAT_HPP
 #define SF_SFORMAT_HPP
 
-#if !defined(SF_CXX17) && __cplusplus >= 201703L
-#define SF_CXX17
-#endif // C++17
-
-#ifndef SF_CONSTEXPR
-#if defined(SF_CXX14) || _MSC_VER >= 1910
-#define SF_CONSTEXPR constexpr
-#else
-#define SF_CONSTEXPR inline
-#endif // SF_CXX14
-#endif // !SF_CONSTEXPR
+#include "utility.hpp"
 
 #if defined(SF_CXX17) || _MSC_VER >= 1910
 
