@@ -40,6 +40,8 @@ print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 int i; std::string s;
 std::string ret = sscan("123 abc !!!"s, "{0}{1}"sv, i, s);//ret == " !!!"
 ```
+## Colors
+Under developing...
 ## Declaration
 `format.hpp`
 ``` c++

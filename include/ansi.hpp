@@ -55,7 +55,7 @@ namespace sf
         }
     };
 
-    enum color : int
+    enum color_value : int
     {
         black = 0,
         red,
@@ -73,23 +73,19 @@ namespace sf
     {
     private:
         T arg;
-        color fore;
-        bool foreb;
-        color back;
-        bool backb;
+        int fc, bc;
 
     public:
-        color_arg() = default;
-        SF_CONSTEXPR color_arg(T&& arg, color fore, bool foreb, color back, bool backb)
-            : arg(arg), fore(fore), foreb(foreb), back(back), backb(backb)
+        SF_CONSTEXPR color() = default;
+        SF_CONSTEXPR color(T&& arg, color_value fore, bool foreb, color_value back, bool backb) : arg(arg)
         {
+            fc = foreb ? fore + 90 : fore + 30;
+            bc = backb ? back + 100 : back + 40;
         }
         template <typename Char, typename Traits = std::char_traits<Char>>
         friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
         {
-            int fc = arg.foreb ? arg.fore + 90 : arg.fore + 30;
-            int bc = arg.backb ? arg.back + 100 : arg.back + 40;
-            return stream << ansi_control{ fc, bc } << arg.arg << ansi_control{};
+            return stream << ansi_control{ arg.fc, arg.bc } << arg.arg << ansi_control{};
         }
     };
 
