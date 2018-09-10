@@ -1,3 +1,4 @@
+// StreamFormat sformat.hpp
 #ifndef SF_SFORMAT_HPP
 #define SF_SFORMAT_HPP
 

@@ -1,3 +1,4 @@
+// StreamFormat ansi.hpp
 #ifndef SF_ANSI_HPP
 #define SF_ANSI_HPP
 

@@ -1,3 +1,4 @@
+// StreamFormat utility.hpp
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
