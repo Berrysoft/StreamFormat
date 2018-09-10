@@ -90,12 +90,10 @@ namespace sf
     class ansi_control
     {
     public:
-        ansi_control(Args&&... args) : args(std::forward<Args>(args)...) {}
+        ansi_control(Args&&... args);
         template <typename Char, typename Traits = std::char_traits<Char>>
         friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl);
     };
-    template <typename... Args>
-    constexpr ansi_control<Args...> make_ansi_control(Args&&... args);
 
     enum color : int
     {
@@ -110,6 +108,7 @@ namespace sf
         extendend,
         user_defaults
     };
+
     template <typename T>
     class color_arg
     {
@@ -119,6 +118,10 @@ namespace sf
         template <typename Char, typename Traits = std::char_traits<Char>>
         friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg);
     };
+
+    template <typename... Args>
+    constexpr ansi_control<Args...> make_ansi_control(Args&&... args);
+
     template <typename T>
     constexpr color_arg<T> make_color_arg(T&& arg, color fore, bool foreb = false);
     template <typename T>
