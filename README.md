@@ -43,7 +43,7 @@ std::string ret = sscan("123 abc !!!"s, "{0}{1}"sv, i, s);//ret == " !!!"
 ## Colors
 Under developing...
 ## Declaration
-`format.hpp`
+format.hpp
 ``` c++
 namespace sf
 {
@@ -66,7 +66,7 @@ namespace sf
     constexpr std::wostream& print(std::wstring_view fmt, Args&&... args);
 } // namespace sf
 ```
-`sformat.hpp`
+sformat.hpp
 ``` c++
 namespace sf
 {
@@ -74,5 +74,50 @@ namespace sf
     constexpr std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args);
     template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
     constexpr std::basic_string<Char, Traits, Alloc> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args);
+} // namespace sf
+```
+ansi.hpp
+``` c++
+namespace sf
+{
+    template <typename... Args>
+    class ansi_control
+    {
+    public:
+        ansi_control(Args&&... args) : args(std::forward<Args>(args)...) {}
+        template <typename Char, typename Traits = std::char_traits<Char>>
+        friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl);
+    };
+    template <typename... Args>
+    constexpr ansi_control<Args...> make_ansi_control(Args&&... args);
+
+    enum color : int
+    {
+        black = 0,
+        red,
+        green,
+        yellow,
+        blue,
+        magenta,
+        cyan,
+        white,
+        extendend,
+        user_defaults
+    };
+    template <typename T>
+    class color_arg
+    {
+    public:
+        constexpr color_arg();
+        constexpr color_arg(T&& arg, color fore, bool foreb, color back, bool backb);
+        template <typename Char, typename Traits = std::char_traits<Char>>
+        friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg);
+    };
+    template <typename T>
+    constexpr color_arg<T> make_color_arg(T&& arg, color fore, bool foreb = false);
+    template <typename T>
+    constexpr color_arg<T> make_color_arg(T&& arg, color fore, color back);
+    template <typename T>
+    constexpr color_arg<T> make_color_arg(T&& arg, color fore, bool foreb, color back, bool backb);
 } // namespace sf
 ```

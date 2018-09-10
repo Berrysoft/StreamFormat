@@ -5,8 +5,8 @@
 
 #if defined(SF_CXX14) || _MSC_VER >= 1900
 
-#include <initializer_list>
 #include <ostream>
+#include <tuple>
 
 namespace sf
 {
@@ -17,18 +17,34 @@ namespace sf
         SF_CHAR_TEMPLATE(smcolon, ';')
         SF_CHAR_TEMPLATE(ansi_end, 'm')
 
-        template <typename Char, typename Traits = std::char_traits<Char>>
-        std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::initializer_list<int>& list)
+        template <typename Char, typename Traits, typename Arg0, typename... Args>
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0 arg0, Args... args)
+        {
+            stream << arg0;
+            SF_IF_CONSTEXPR(sizeof...(Args))
+            {
+                stream << smcolon<Char>();
+                return join_args(stream, args...);
+            }
+            else
+            {
+                return stream;
+            }
+        }
+        template <typename Char, typename Traits, typename... Args, std::size_t... Indices>
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, std::index_sequence<Indices...>)
+        {
+            return join_args(stream, std::get<Indices>(args)...);
+        }
+
+        template <typename Char, typename Traits, typename... Args>
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args)
         {
             stream << esc<Char>() << sqr_bra<Char>();
-            if (list.size())
+            SF_CONSTEXPR auto size = std::tuple_size_v<std::tuple<Args...>>;
+            SF_IF_CONSTEXPR(size > 0)
             {
-                auto it = list.begin();
-                stream << *it;
-                for (; it != list.end(); it++)
-                {
-                    stream << smcolon<Char>() << *it;
-                }
+                join_args_helper(stream, args, std::make_index_sequence<size>());
             }
             else
             {
@@ -40,22 +56,28 @@ namespace sf
     } // namespace internal
 
     //Write Console Virtual Terminal Sequences (ANSI Control Characters) to a stream.
+    template <typename... Args>
     class ansi_control
     {
     private:
-        std::initializer_list<int> list;
+        std::tuple<Args...> args;
 
     public:
-        ansi_control() : list() {}
-        ansi_control(std::initializer_list<int> list) : list(list) {}
+        ansi_control(Args&&... args) : args(std::forward<Args>(args)...) {}
         template <typename Char, typename Traits = std::char_traits<Char>>
         friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl)
         {
-            return internal::write_ansi(stream, ctrl.list);
+            return internal::write_ansi(stream, ctrl.args);
         }
     };
 
-    enum color_value : int
+    template <typename... Args>
+    SF_CONSTEXPR ansi_control<Args...> make_ansi_control(Args&&... args)
+    {
+        return ansi_control<Args...>(std::forward<Args>(args)...);
+    }
+
+    enum color : int
     {
         black = 0,
         red,
@@ -76,8 +98,8 @@ namespace sf
         int fc, bc;
 
     public:
-        SF_CONSTEXPR color() = default;
-        SF_CONSTEXPR color(T&& arg, color_value fore, bool foreb, color_value back, bool backb) : arg(arg)
+        SF_CONSTEXPR color_arg() = default;
+        SF_CONSTEXPR color_arg(T&& arg, color fore, bool foreb, color back, bool backb) : arg(arg)
         {
             fc = foreb ? fore + 90 : fore + 30;
             bc = backb ? back + 100 : back + 40;
@@ -85,7 +107,7 @@ namespace sf
         template <typename Char, typename Traits = std::char_traits<Char>>
         friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
         {
-            return stream << ansi_control{ arg.fc, arg.bc } << arg.arg << ansi_control{};
+            return stream << make_ansi_control(arg.fc, arg.bc) << arg.arg << make_ansi_control();
         }
     };
 
