@@ -2,7 +2,7 @@
 #ifndef SF_ANSI_HPP
 #define SF_ANSI_HPP
 
-#include "utility.hpp"
+#include <sf/utility.hpp>
 
 #if defined(SF_CXX14) || _MSC_VER >= 1900
 

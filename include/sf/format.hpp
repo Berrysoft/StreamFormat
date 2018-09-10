@@ -2,7 +2,7 @@
 #ifndef SF_FORMAT_HPP
 #define SF_FORMAT_HPP
 
-#include "utility.hpp"
+#include <sf/utility.hpp>
 
 #if defined(SF_CXX17) || _MSC_VER >= 1910
 

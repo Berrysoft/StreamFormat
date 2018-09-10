@@ -2,11 +2,11 @@
 #ifndef SF_SFORMAT_HPP
 #define SF_SFORMAT_HPP
 
-#include "utility.hpp"
+#include <sf/utility.hpp>
 
 #if defined(SF_CXX17) || _MSC_VER >= 1910
 
-#include "format.hpp"
+#include <sf/format.hpp>
 #include <sstream>
 
 namespace sf
