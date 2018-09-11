@@ -4,7 +4,7 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX14) || _MSC_VER >= 1900
+#if defined(SF_CXX11) || _MSC_VER >= 1900
 
 #include <ostream>
 #include <tuple>
@@ -130,6 +130,6 @@ namespace sf
     }
 } // namespace sf
 
-#endif // SF_CXX14
+#endif // SF_CXX11
 
 #endif // !SF_ANSI_HPP

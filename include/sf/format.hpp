@@ -193,6 +193,17 @@ namespace sf
         SF_CHAR_TEMPLATE(chex, 'x')
         SF_CHAR_TEMPLATE(cHEX, 'X')
 
+        template <typename Char, typename Traits>
+        SF_CONSTEXPR int stoi(const std::basic_string_view<Char, Traits>& str)
+        {
+            return std::stoi(std::basic_string<Char, Traits>(str.data(), str.length()));
+        }
+        template <typename Char, typename Traits>
+        SF_CONSTEXPR unsigned long long stoull(const std::basic_string_view<Char, Traits>& str)
+        {
+            return std::stoull(std::basic_string<Char, Traits>(str.data(), str.length()));
+        }
+
         //Parse format string and set stream flag.
         //D -> dec
         //E -> scientific
@@ -228,7 +239,7 @@ namespace sf
                     fmtc = str[0];
                     if (str.length() > 1)
                     {
-                        fmtf = std::stoi(str.substr(1).data());
+                        fmtf = stoi(str.substr(1));
                     }
                 }
             }
@@ -385,13 +396,13 @@ namespace sf
                             int_type ci = fmt.find(colon<Char>(), offset);
                             if (ci != string_view_type::npos)
                             {
-                                std::size_t i = std::stoull(fmt.substr(offset, ci - offset).data());
+                                std::size_t i = stoull(fmt.substr(offset, ci - offset));
                                 offset = index + 1;
                                 return format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1));
                             }
                             else
                             {
-                                std::size_t i = std::stoull(fmt.substr(offset, index - offset).data());
+                                std::size_t i = stoull(fmt.substr(offset, index - offset));
                                 offset = index + 1;
                                 return args[i];
                             }
