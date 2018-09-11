@@ -64,30 +64,4 @@
     }
 #endif // !SF_CHAR_TEMPLATE
 
-#ifndef SF_STR_TEMPLATE
-#define SF_STR_TEMPLATE(name, value)                \
-    template <typename Char>                        \
-    SF_CONSTEXPR const Char* name() SF_NOEXCEPT;    \
-    template <>                                     \
-    SF_CONSTEXPR const char* name() SF_NOEXCEPT     \
-    {                                               \
-        return value;                               \
-    }                                               \
-    template <>                                     \
-    SF_CONSTEXPR const char16_t* name() SF_NOEXCEPT \
-    {                                               \
-        return u##value;                            \
-    }                                               \
-    template <>                                     \
-    SF_CONSTEXPR const char32_t* name() SF_NOEXCEPT \
-    {                                               \
-        return U##value;                            \
-    }                                               \
-    template <>                                     \
-    SF_CONSTEXPR const wchar_t* name() SF_NOEXCEPT  \
-    {                                               \
-        return L##value;                            \
-    }
-#endif // !SF_STR_TEMPLATE
-
 #endif // !SF_UTILITY_HPP

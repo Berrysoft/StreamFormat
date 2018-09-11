@@ -86,9 +86,7 @@ namespace sf
         SF_CHAR_TEMPLATE(lf, '\n')
 
         SF_CHAR_TEMPLATE(left_brace, '{')
-        SF_STR_TEMPLATE(left_double_brace, "{{")
         SF_CHAR_TEMPLATE(right_brace, '}')
-        SF_STR_TEMPLATE(right_double_brace, "}}")
 
         //Input/Output string slice.
         template <io_state, typename Char, typename Traits>
@@ -153,21 +151,6 @@ namespace sf
 
         private:
             string_view_type arg;
-            std::vector<string_view_type> split_by_double_brace()
-            {
-                std::vector<string_view_type> result;
-                int_type index = 0, offset = 0;
-                while ((index = arg.find(right_double_brace<Char>(), offset)) != string_view_type::npos)
-                {
-                    result.push_back(arg.substr(offset, index - offset + 1));
-                    offset = index + 2;
-                }
-                if (arg.length() > offset)
-                {
-                    result.push_back(arg.substr(offset));
-                }
-                return result;
-            }
 
         public:
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
@@ -175,10 +158,7 @@ namespace sf
             {
                 if (os)
                 {
-                    for (auto& s : split_by_double_brace())
-                    {
-                        os.write(s.data(), s.length());
-                    }
+                    os.write(arg.data(), arg.length());
                 }
                 return os;
             }
@@ -301,6 +281,13 @@ namespace sf
                     stream.fill(' ');
                     stream.width(fmtf);
                 }
+                else if (Traits::eq(fmtc, cgen<Char>()) || Traits::eq(fmtc, cGEN<Char>()))
+                {
+                }
+                else
+                {
+                    throw std::logic_error("Invalid format character.");
+                }
                 if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cGEN<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()))
                 {
                     stream.setf(std::ios_base::uppercase);
@@ -346,22 +333,38 @@ namespace sf
                 {
                     if (!in_number)
                     {
-                        index = fmt.find(left_brace<Char>(), offset);
                         int_type off = offset;
-                        if (index != string_view_type::npos)
+                        int_type lindex = fmt.find(left_brace<Char>(), offset);
+                        int_type rindex = fmt.find(right_brace<Char>(), offset);
+                        if (lindex == string_view_type::npos && rindex == string_view_type::npos)
                         {
-                            if (index + 1 < length && fmt[index + 1] == left_brace<Char>())
-                            {
-                                index++;
-                            }
-                            else
-                            {
-                                in_number = true;
-                            }
+                            index = length;
                         }
                         else
                         {
-                            index = length;
+                            if (lindex < rindex)
+                            {
+                                if (lindex + 1 < length && Traits::eq(fmt[lindex + 1], left_brace<Char>()))
+                                {
+                                    index = lindex + 1;
+                                }
+                                else
+                                {
+                                    index = lindex;
+                                    in_number = true;
+                                }
+                            }
+                            else
+                            {
+                                if (rindex + 1 < length && Traits::eq(fmt[rindex + 1], right_brace<Char>()))
+                                {
+                                    index = rindex + 1;
+                                }
+                                else
+                                {
+                                    throw std::logic_error("No \"{\" matches \"}\".");
+                                }
+                            }
                         }
                         int_type len = index - offset;
                         offset = index + 1;
@@ -374,7 +377,7 @@ namespace sf
                         index = fmt.find(right_brace<Char>(), offset);
                         if (index == string_view_type::npos)
                         {
-                            throw std::out_of_range("No \"}\" was found after \"{\".");
+                            throw std::logic_error("No \"}\" was found after \"{\".");
                         }
                         else
                         {
