@@ -393,7 +393,7 @@ namespace sf
                         {
                             in_number = false;
                             int_type ci = fmt.find(colon<Char>(), offset);
-                            if (ci != string_view_type::npos)
+                            if (ci != string_view_type::npos && ci < index)
                             {
                                 std::size_t i = stoull(fmt.substr(offset, ci - offset));
                                 offset = index + 1;
