@@ -329,17 +329,16 @@ namespace sf
         private:
             const string_view_type& fmt;
             arg_list_type args;
-            int_type offset, index;
-            const int_type length;
-            bool in_number;
-
         public:
             SF_CONSTEXPR format_string_view(const string_view_type& fmt, arg_list_type&& args)
-                : fmt(fmt), args(std::move(args)), offset(0), index(0), length(fmt.length()), in_number(false)
+                : fmt(fmt), args(std::move(args))
             {
             }
-            arg_type move_next()
+            stream_type& operator()(stream_type& stream)
             {
+                int_type offset = 0, index = 0;
+                const int_type length = fmt.length();
+                bool in_number = false;
                 while (offset < length)
                 {
                     if (!in_number)
@@ -381,7 +380,7 @@ namespace sf
                         offset = index + 1;
                         if (len <= 0)
                             continue;
-                        return string_view_io_type(fmt.substr(off, len));
+                        string_view_io_type(fmt.substr(off, len))(stream);
                     }
                     else
                     {
@@ -398,37 +397,25 @@ namespace sf
                             {
                                 std::size_t i = stoull(fmt.substr(offset, ci - offset));
                                 offset = index + 1;
-                                return format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1));
+                                format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1))(stream);
                             }
                             else
                             {
                                 std::size_t i = stoull(fmt.substr(offset, index - offset));
                                 offset = index + 1;
-                                return args[i];
+                                args[i](stream);
                             }
                         }
                     }
-                    break;
                 }
-                return {};
+                return stream;
             }
         };
 
-        //Iterates the format string and arguments.
-        template <io_state IOState, typename Char, typename Traits>
-        SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, format_string_view<IOState, Char, Traits> fmt)
-        {
-            arg_t<stream_t<IOState, Char, Traits>> arg;
-            while ((arg = fmt.move_next()))
-            {
-                arg(stream);
-            }
-            return stream;
-        }
         template <io_state IOState, typename Char, typename Traits, typename... Args>
         SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
-            return format(stream, format_string_view<IOState, Char, Traits>(fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(static_cast<Args&&>(args))... }));
+            return format_string_view<IOState, Char, Traits>(fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... })(stream);
         }
     } // namespace internal
 
@@ -436,36 +423,36 @@ namespace sf
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
     SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
-        return internal::format<internal::input>(stream, fmt, args...);
+        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
     SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
-        return internal::format<internal::output>(stream, fmt, args...);
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
 
     //char IO
     template <typename... Args>
     SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&&... args)
     {
-        return scan(std::cin, fmt, args...);
+        return scan(std::cin, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
     SF_CONSTEXPR std::ostream& print(std::string_view fmt, Args&&... args)
     {
-        return print(std::cout, fmt, args...);
+        return print(std::cout, fmt, std::forward<Args>(args)...);
     }
 
     //wchar_t IO
     template <typename... Args>
     SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&&... args)
     {
-        return scan(std::wcin, fmt, args...);
+        return scan(std::wcin, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
     SF_CONSTEXPR std::wostream& print(std::wstring_view fmt, Args&&... args)
     {
-        return print(std::wcout, fmt, args...);
+        return print(std::wcout, fmt, std::forward<Args>(args)...);
     }
 } // namespace sf
 #endif // SF_CXX17
