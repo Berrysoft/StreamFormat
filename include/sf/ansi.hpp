@@ -89,7 +89,7 @@ namespace sf
         cyan,
         white,
         extendend,
-        user_default //Make compilers happy.
+        user_default //To make clang happy, use `user_default` instead of `default` keyword.
     };
     template <typename T>
     class color_arg
@@ -116,17 +116,17 @@ namespace sf
     template <typename T>
     SF_CONSTEXPR color_arg<T> make_color_arg(T&& arg, color fore, bool foreb = false)
     {
-        return color_arg<T>(static_cast<T&&>(arg), fore, foreb, user_default, false);
+        return color_arg<T>(std::forward<T>(arg), fore, foreb, user_default, false);
     }
     template <typename T>
     SF_CONSTEXPR color_arg<T> make_color_arg(T&& arg, color fore, color back)
     {
-        return color_arg<T>(static_cast<T&&>(arg), fore, false, back, false);
+        return color_arg<T>(std::forward<T>(arg), fore, false, back, false);
     }
     template <typename T>
     SF_CONSTEXPR color_arg<T> make_color_arg(T&& arg, color fore, bool foreb, color back, bool backb)
     {
-        return color_arg<T>(static_cast<T&&>(arg), fore, foreb, back, backb);
+        return color_arg<T>(std::forward<T>(arg), fore, foreb, back, backb);
     }
 } // namespace sf
 

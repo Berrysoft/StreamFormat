@@ -73,7 +73,7 @@ namespace sf
 
         public:
             arg_io(T&& arg) : arg(arg) {}
-            stream_type& operator()(stream_type& stream)
+            SF_CONSTEXPR stream_type& operator()(stream_type& stream)
             {
                 return operate<IOState>(stream);
             }

@@ -41,26 +41,29 @@ namespace sf
         return internal::sprint<Char, Traits, Allocator>(fmt, std::forward<Args>(args)...);
     }
 
+    //clang will error if the return types are written explicitly.
+    //`auto` will make it happy.
+
     //char IO
     template <typename... Args>
-    SF_CONSTEXPR typename std::char_traits<char>::pos_type sscan(const std::string& str, std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR auto sscan(const std::string& str, std::string_view fmt, Args&&... args)
     {
         return internal::sscan<char, std::char_traits<char>, std::allocator<char>>(str, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::string sprint(std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR auto sprint(std::string_view fmt, Args&&... args)
     {
         return internal::sprint<char, std::char_traits<char>, std::allocator<char>>(fmt, std::forward<Args>(args)...);
     }
 
     //wchar IO
     template <typename... Args>
-    SF_CONSTEXPR typename std::char_traits<wchar_t>::pos_type sscan(const std::wstring& str, std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR auto sscan(const std::wstring& str, std::wstring_view fmt, Args&&... args)
     {
         return internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(str, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wstring sprint(std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR auto sprint(std::wstring_view fmt, Args&&... args)
     {
         return internal::sprint<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(fmt, std::forward<Args>(args)...);
     }
