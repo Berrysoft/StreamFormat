@@ -13,10 +13,8 @@ And you can `print` to other streams:
 using namespace std;
 sf::print(std::clog, "{0}:{1}", 11, 59);
 ostringstream oss;
-sf::print(oss, "This message is printed.\n"sv) << "And this is shifted." << endl;
+sf::print(oss, "This message is printed.\n") << "And this is shifted." << endl;
 ```
-To make compilers happy, you may add an `s` or `sv` after some string literals.
-
 `print` returns the stream object you have just printed, while `sprint` returns a string:
 ``` c++
 std::string s = sf::sprint("{0}{{{1}}}{0}", "123", "321");//123{321}123
@@ -41,92 +39,10 @@ sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ``` c++
 using namespace std;
 int i; string s;
-string ret = sf::sscan("123 abc !!!"s, "{0}{1}"sv, i, s);//ret == " !!!"
+string ret = sf::sscan("123 abc !!!", "{0}{1}", i, s);//ret == " !!!"
 ```
 ### Colors
 `make_color_arg` function helps you to wrap an argument with specified foreground and background color:
 ``` c++
 sf::print("{0}, {1}!\n", sf::make_color_arg("Hello", yellow), sf::make_color_arg("world", cyan, true, blue, false));
-```
-## Declaration
-format.hpp
-``` c++
-namespace sf
-{
-    //template IO
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args);
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args);
-
-    //char IO
-    template <typename... Args>
-    constexpr std::istream& scan(std::string_view fmt, Args&&... args);
-    template <typename... Args>
-    constexpr std::ostream& print(std::string_view fmt, Args&&... args);
-
-    //wchar_t IO
-    template <typename... Args>
-    constexpr std::wistream& scan(std::wstring_view fmt, Args&&... args);
-    template <typename... Args>
-    constexpr std::wostream& print(std::wstring_view fmt, Args&&... args);
-} // namespace sf
-```
-sformat.hpp
-``` c++
-namespace sf
-{
-    template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    constexpr std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args);
-    template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    constexpr std::basic_string<Char, Traits, Alloc> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args);
-} // namespace sf
-```
-ansi.hpp
-``` c++
-namespace sf
-{
-    template <typename... Args>
-    class ansi_control
-    {
-    public:
-        ansi_control(Args&&... args);
-        template <typename Char, typename Traits = std::char_traits<Char>>
-        friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl);
-    };
-
-    enum color : int
-    {
-        black = 0,
-        red,
-        green,
-        yellow,
-        blue,
-        magenta,
-        cyan,
-        white,
-        extendend,
-        user_defaults
-    };
-
-    template <typename T>
-    class color_arg
-    {
-    public:
-        constexpr color_arg();
-        constexpr color_arg(T&& arg, color fore, bool foreb, color back, bool backb);
-        template <typename Char, typename Traits = std::char_traits<Char>>
-        friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg);
-    };
-
-    template <typename... Args>
-    constexpr ansi_control<Args...> make_ansi_control(Args&&... args);
-
-    template <typename T>
-    constexpr color_arg<T> make_color_arg(T&& arg, color fore, bool foreb = false);
-    template <typename T>
-    constexpr color_arg<T> make_color_arg(T&& arg, color fore, color back);
-    template <typename T>
-    constexpr color_arg<T> make_color_arg(T&& arg, color fore, bool foreb, color back, bool backb);
-} // namespace sf
 ```

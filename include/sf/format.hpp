@@ -60,23 +60,22 @@ namespace sf
 
         private:
             T arg;
+            template <io_state State>
+            SF_CONSTEXPR std::enable_if_t<State == input, stream_type>& operate(stream_type& stream)
+            {
+                return stream >> arg;
+            }
+            template <io_state State>
+            SF_CONSTEXPR std::enable_if_t<State == output, stream_type>& operate(stream_type& stream)
+            {
+                return stream << arg;
+            }
 
         public:
             arg_io(T&& arg) : arg(arg) {}
             stream_type& operator()(stream_type& stream)
             {
-                SF_IF_CONSTEXPR(IOState == input)
-                {
-                    return stream >> arg;
-                }
-                else SF_IF_CONSTEXPR(IOState == output)
-                {
-                    return stream << arg;
-                }
-                else
-                {
-                    return stream;
-                }
+                return operate<IOState>(stream);
             }
         };
 
@@ -329,6 +328,7 @@ namespace sf
         private:
             const string_view_type& fmt;
             arg_list_type args;
+
         public:
             SF_CONSTEXPR format_string_view(const string_view_type& fmt, arg_list_type&& args)
                 : fmt(fmt), args(std::move(args))
@@ -433,9 +433,19 @@ namespace sf
 
     //char IO
     template <typename... Args>
+    SF_CONSTEXPR std::istream& scan(std::istream& stream, std::string_view fmt, Args&&... args)
+    {
+        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
     SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&&... args)
     {
         return scan(std::cin, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::ostream& print(std::ostream& stream, std::string_view fmt, Args&&... args)
+    {
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
     SF_CONSTEXPR std::ostream& print(std::string_view fmt, Args&&... args)
@@ -445,9 +455,19 @@ namespace sf
 
     //wchar_t IO
     template <typename... Args>
+    SF_CONSTEXPR std::wistream& scan(std::wistream& stream, std::wstring_view fmt, Args&&... args)
+    {
+        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
     SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&&... args)
     {
         return scan(std::wcin, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::wostream& print(std::wostream& stream, std::wstring_view fmt, Args&&... args)
+    {
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
     SF_CONSTEXPR std::wostream& print(std::wstring_view fmt, Args&&... args)

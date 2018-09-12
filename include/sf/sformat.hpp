@@ -11,22 +11,58 @@
 
 namespace sf
 {
-    template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_string<Char, Traits, Alloc> sscan(const std::basic_string<Char, Traits, Alloc>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    namespace internal
     {
-        std::basic_istringstream<Char, Traits, Alloc> iss(str);
-        scan(iss, fmt, std::forward<Args>(args)...);
-        if (!iss.eof())
-            return str.substr(iss.tellg());
-        else
-            return {};
+        template <typename Char, typename Traits, typename Allocator, typename... Args>
+        SF_CONSTEXPR typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
+        {
+            std::basic_istringstream<Char, Traits, Allocator> iss(str);
+            format<input>(iss, fmt, std::forward<Args>(args)...);
+            return iss.tellg();
+        }
+        template <typename Char, typename Traits, typename Allocator, typename... Args>
+        SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
+        {
+            std::basic_ostringstream<Char, Traits, Allocator> oss;
+            format<output>(oss, fmt, std::forward<Args>(args)...);
+            return oss.str();
+        }
     }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_string<Char, Traits, Alloc> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args)
+
+    //template IO
+    template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename... Args>
+    SF_CONSTEXPR typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
-        std::basic_ostringstream<Char, Traits, Alloc> oss;
-        print(oss, fmt, std::forward<Args>(args)...);
-        return oss.str();
+        return internal::sscan<Char, Traits, Allocator>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename... Args>
+    SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    {
+        return internal::sprint<Char, Traits, Allocator>(fmt, std::forward<Args>(args)...);
+    }
+
+    //char IO
+    template <typename... Args>
+    SF_CONSTEXPR typename std::char_traits<char>::pos_type sscan(const std::string& str, std::string_view fmt, Args&&... args)
+    {
+        return internal::sscan<char, std::char_traits<char>, std::allocator<char>>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::string sprint(std::string_view fmt, Args&&... args)
+    {
+        return internal::sprint<char, std::char_traits<char>, std::allocator<char>>(fmt, std::forward<Args>(args)...);
+    }
+
+    //wchar IO
+    template <typename... Args>
+    SF_CONSTEXPR typename std::char_traits<wchar_t>::pos_type sscan(const std::wstring& str, std::wstring_view fmt, Args&&... args)
+    {
+        return internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::wstring sprint(std::wstring_view fmt, Args&&... args)
+    {
+        return internal::sprint<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(fmt, std::forward<Args>(args)...);
     }
 } // namespace sf
 
