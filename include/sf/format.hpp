@@ -491,39 +491,40 @@ namespace sf
 
     //template IO
     template <typename Char, typename Traits = std::char_traits<Char>, typename T>
-    SF_CONSTEXPR std::basic_istream<Char, Traits>& streamget(std::basic_istream<Char, Traits>& stream, T&& arg)
+    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, T&& arg)
     {
         return internal::format<internal::input, Char, Traits, T>(stream, std::forward<T>(arg));
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename T>
-    SF_CONSTEXPR std::basic_ostream<Char, Traits>& streamput(std::basic_ostream<Char, Traits>& stream, T&& arg)
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, T&& arg)
     {
         return internal::format<internal::output, Char, Traits, T>(stream, std::forward<T>(arg));
     }
-
+#ifndef SF_FORCE_WIDE_IO
     //char IO
     template <typename T>
-    SF_CONSTEXPR std::istream& get(T&& arg)
+    SF_CONSTEXPR std::istream& scan(T&& arg)
     {
-        return streamget(std::cin, std::forward<T>(arg));
+        return scan(std::cin, std::forward<T>(arg));
     }
     template <typename T>
-    SF_CONSTEXPR std::ostream& put(T&& arg)
+    SF_CONSTEXPR std::ostream& print(T&& arg)
     {
-        return streamput(std::cout, std::forward<T>(arg));
+        return print(std::cout, std::forward<T>(arg));
     }
-
+#else
     //wchar_t IO
     template <typename T>
-    SF_CONSTEXPR std::wistream& wget(T&& arg)
+    SF_CONSTEXPR std::wistream& scan(T&& arg)
     {
-        return streamget(std::wcin, std::forward<T>(arg));
+        return scan(std::wcin, std::forward<T>(arg));
     }
     template <typename T>
-    SF_CONSTEXPR std::wostream& wput(T&& arg)
+    SF_CONSTEXPR std::wostream& print(T&& arg)
     {
-        return streamput(std::wcout, std::forward<T>(arg));
+        return print(std::wcout, std::forward<T>(arg));
     }
+#endif // !SF_FORCE_WIDE_IO
 } // namespace sf
 #endif // SF_CXX17
 

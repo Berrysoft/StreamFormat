@@ -21,7 +21,7 @@ enable_testing()
 
 add_executable(print test/print.cpp)
 add_test(test_print print)
-set_tests_properties(test_print PROPERTIES PASS_REGULAR_EXPRESSION "\n0xfee1dead\nHello, world!\n123{321}123\n")
+set_tests_properties(test_print PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
 
 add_executable(scan test/scan.cpp)
 add_test(test_scan_1 scan "1 1" "1 + 1 = 2")
