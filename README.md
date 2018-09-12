@@ -10,9 +10,8 @@ sf::print("0x{0:x8}\n", 4276215469);            //0xfee1dead
 ```
 And you can `print` to other streams:
 ``` c++
-using namespace std;
 sf::print(std::clog, "{0}:{1}", 11, 59);
-ostringstream oss;
+std::ostringstream oss;
 sf::print(oss, "This message is printed.\n") << "And this is shifted." << endl;
 ```
 `print` returns the stream object you have just printed, while `sprint` returns a string:
@@ -37,9 +36,8 @@ sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ```
 `sscan` returns a part of the string which wasn't scanned:
 ``` c++
-using namespace std;
-int i; string s;
-string ret = sf::sscan("123 abc !!!", "{0}{1}", i, s);//ret == " !!!"
+int i; std::string s;
+std::string ret = sf::sscan("123 abc !!!", "{0}{1}", i, s);//ret == " !!!"
 ```
 ### Colors
 `make_color_arg` function helps you to wrap an argument with specified foreground and background color:

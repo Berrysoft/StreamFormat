@@ -18,6 +18,13 @@ add_headers(SF_HEADERS utility.hpp ansi.hpp format.hpp sformat.hpp)
 install(FILES ${SF_HEADERS} DESTINATION include/sf)
 
 enable_testing()
+
 add_executable(print test/print.cpp)
 add_test(test_print print)
 set_tests_properties(test_print PROPERTIES PASS_REGULAR_EXPRESSION "\n0xfee1dead\nHello, world!\n123{321}123\n")
+
+add_executable(scan test/scan.cpp)
+add_test(test_scan_1 scan "1 1" "1 + 1 = 2")
+set_tests_properties(test_scan_1 PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
+add_test(test_scan_2 scan "111 222 333" " 333")
+set_tests_properties(test_scan_2 PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
