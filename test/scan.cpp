@@ -8,17 +8,17 @@ int main(int argc, char** argv)
     if (argc > 2)
     {
         int a, b;
-        ostringstream oss;
+        string result;
         auto pos = sscan(argv[1], "{0}{1}", a, b);
         if (pos != decltype(pos)(-1))
         {
-            print(oss, argv[1] + pos);
+            result = sprint(argv[1] + pos);
         }
         else
         {
-            print(oss, "{0} + {1} = {2}", a, b, a + b);
+            result = sprint("{0} + {1} = {2}", a, b, a + b);
         }
-        if (oss.str() == argv[2])
+        if (result == argv[2])
         {
             print("Success.\n");
         }
