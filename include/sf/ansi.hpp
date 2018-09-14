@@ -18,7 +18,7 @@ namespace sf
         SF_CHAR_TEMPLATE(smcolon, ';')
         SF_CHAR_TEMPLATE(ansi_end, 'm')
 
-		template <typename Char, typename Traits, typename Arg0, typename... Args>
+        template <typename Char, typename Traits, typename Arg0, typename... Args>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0, Args&&... args)
         {
             return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>(), std::forward<Args>(args)...);

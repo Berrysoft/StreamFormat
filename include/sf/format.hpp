@@ -346,28 +346,28 @@ namespace sf
                         int_type off = offset;
                         for (index = offset; index < length; index++)
                         {
-							if (Traits::eq(fmt[index], left_brace<Char>()))
-							{
-								if (index + 1 < length && Traits::eq(fmt[index + 1], left_brace<Char>()))
-								{
+                            if (Traits::eq(fmt[index], left_brace<Char>()))
+                            {
+                                if (index + 1 < length && Traits::eq(fmt[index + 1], left_brace<Char>()))
+                                {
                                     index++;
-								}
+                                }
                                 else
                                 {
                                     in_number = true;
                                 }
-							}
-							else if (Traits::eq(fmt[index], right_brace<Char>()))
-							{
-								if (index + 1 < length && Traits::eq(fmt[index + 1], right_brace<Char>()))
-								{
-									index++;
-								}
+                            }
+                            else if (Traits::eq(fmt[index], right_brace<Char>()))
+                            {
+                                if (index + 1 < length && Traits::eq(fmt[index + 1], right_brace<Char>()))
+                                {
+                                    index++;
+                                }
                                 else
                                 {
                                     throw std::logic_error("No \"{\" matches \"}\".");
                                 }
-							}
+                            }
                             else
                             {
                                 continue;

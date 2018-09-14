@@ -27,7 +27,7 @@ namespace sf
             format<output>(oss, fmt, std::forward<Args>(args)...);
             return oss.str();
         }
-    }
+    } // namespace internal
 
     //template IO
     template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename... Args>
