@@ -344,37 +344,35 @@ namespace sf
                     if (!in_number)
                     {
                         int_type off = offset;
-                        int_type lindex = fmt.find(left_brace<Char>(), offset);
-                        int_type rindex = fmt.find(right_brace<Char>(), offset);
-                        if (lindex == string_view_type::npos && rindex == string_view_type::npos)
+                        for (index = offset; index < length; index++)
                         {
-                            index = length;
-                        }
-                        else
-                        {
-                            if (lindex < rindex)
-                            {
-                                if (lindex + 1 < length && Traits::eq(fmt[lindex + 1], left_brace<Char>()))
-                                {
-                                    index = lindex + 1;
-                                }
+							if (Traits::eq(fmt[index], left_brace<Char>()))
+							{
+								if (index + 1 < length && Traits::eq(fmt[index + 1], left_brace<Char>()))
+								{
+                                    index++;
+								}
                                 else
                                 {
-                                    index = lindex;
                                     in_number = true;
                                 }
-                            }
-                            else
-                            {
-                                if (rindex + 1 < length && Traits::eq(fmt[rindex + 1], right_brace<Char>()))
-                                {
-                                    index = rindex + 1;
-                                }
+							}
+							else if (Traits::eq(fmt[index], right_brace<Char>()))
+							{
+								if (index + 1 < length && Traits::eq(fmt[index + 1], right_brace<Char>()))
+								{
+									index++;
+								}
                                 else
                                 {
                                     throw std::logic_error("No \"{\" matches \"}\".");
                                 }
+							}
+                            else
+                            {
+                                continue;
                             }
+                            break;
                         }
                         int_type len = index - offset;
                         offset = index + 1;

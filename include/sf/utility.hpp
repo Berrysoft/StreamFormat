@@ -22,14 +22,6 @@
 #endif // SF_CXX14
 #endif // !SF_CONSTEXPR
 
-#ifndef SF_IF_CONSTEXPR
-#if defined(SF_CXX17) || _MSC_VER >= 1911
-#define SF_IF_CONSTEXPR if constexpr
-#else
-#define SF_IF_CONSTEXPR if
-#endif // SF_CXX17
-#endif // !SF_IF_CONSTEXPR
-
 #ifndef SF_NOEXCEPT
 #if defined(SF_CXX11) || _MSC_VER >= 1900
 #define SF_NOEXCEPT noexcept
