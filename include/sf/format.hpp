@@ -72,7 +72,7 @@ namespace sf
             }
 
         public:
-            arg_io(T&& arg) : arg(arg) {}
+            arg_io(T&& arg) : arg(std::forward<T>(arg)) {}
             SF_CONSTEXPR stream_type& operator()(stream_type& stream)
             {
                 return operate<IOState>(stream);
