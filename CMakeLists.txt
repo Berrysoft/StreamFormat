@@ -30,3 +30,5 @@ add_test(test_scan_2 scan "111 222 333" " 333")
 set_tests_properties(test_scan_2 PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
 
 add_executable(color test/color.cpp)
+add_test(test_color color)
+set_tests_properties(test_color PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
