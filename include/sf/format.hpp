@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <iostream>
+#include <sf/stoi.hpp>
 #include <string>
 #include <vector>
 
@@ -81,6 +82,7 @@ namespace sf
 
         SF_CHAR_TEMPLATE(space, ' ')
         SF_CHAR_TEMPLATE(tab, '\t')
+        SF_CHAR_TEMPLATE(vtab, '\v')
         SF_CHAR_TEMPLATE(cr, '\r')
         SF_CHAR_TEMPLATE(lf, '\n')
 
@@ -114,7 +116,7 @@ namespace sf
                             {
                                 auto t = is.peek();
                                 if (t != Traits::eof() &&
-                                    (Traits::eq(t, space<Char>()) || Traits::eq(t, tab<Char>()) || Traits::eq(t, cr<Char>()) || Traits::eq(t, lf<Char>())))
+                                    (Traits::eq(t, space<Char>()) || Traits::eq(t, tab<Char>()) || Traits::eq(t, vtab<Char>()) || Traits::eq(t, cr<Char>()) || Traits::eq(t, lf<Char>())))
                                 {
                                     is.get();
                                 }
@@ -191,17 +193,6 @@ namespace sf
 
         SF_CHAR_TEMPLATE(chex, 'x')
         SF_CHAR_TEMPLATE(cHEX, 'X')
-
-        template <typename Char, typename Traits>
-        SF_CONSTEXPR int stoi(const std::basic_string_view<Char, Traits>& str)
-        {
-            return std::stoi(std::basic_string<Char, Traits>(str.data(), str.length()));
-        }
-        template <typename Char, typename Traits>
-        SF_CONSTEXPR unsigned long long stoull(const std::basic_string_view<Char, Traits>& str)
-        {
-            return std::stoull(std::basic_string<Char, Traits>(str.data(), str.length()));
-        }
 
         //Parse format string and set stream flag.
         //D -> dec
