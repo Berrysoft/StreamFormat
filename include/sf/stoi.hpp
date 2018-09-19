@@ -4,7 +4,7 @@
 
 #include <sf/utility.hpp>
 
-#if defined(CXX_17) || _MSC_VER >= 1910
+#if defined(SF_CXX17) || _MSC_VER >= 1910
 
 #include <string>
 
@@ -28,6 +28,6 @@ namespace sf
         SF_STOI_TEMPLATE(stoull, unsigned long long)
     }
 }
-#endif // !CXX_17
+#endif // !SF_CXX17
 
 #endif // !SF_STOI_HPP
