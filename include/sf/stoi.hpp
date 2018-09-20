@@ -28,6 +28,6 @@ namespace sf
         SF_STOI_TEMPLATE(stoull, unsigned long long)
     }
 }
-#endif // !SF_CXX17
+#endif // SF_CXX17
 
 #endif // !SF_STOI_HPP

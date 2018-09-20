@@ -4,13 +4,18 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX17) || _MSC_VER >= 1910
+#if defined(SF_WIN_NATIVE_COLOR) || (defined(SF_CXX17) || _MSC_VER >= 1910)
 
+#ifdef SF_WIN_NATIVE_COLOR
+#include <Windows.h>
+#else
 #include <sf/ansi.hpp>
 #include <variant>
+#endif // SF_WIN_NATIVE_COLOR
 
 namespace sf
 {
+#ifndef SF_WIN_NATIVE_COLOR
     enum preset_color : unsigned char
     {
         black = 30,
@@ -61,13 +66,13 @@ namespace sf
             {
                 switch (c.value.index())
                 {
-                case 0://preset_color
+                case 0: //preset_color
                     stream << (static_cast<int>(std::get<preset_color>(c.value)) + (c.isback ? 10 : 0));
                     break;
-                case 1://unsigned char
+                case 1: //unsigned char
                     stream << (c.isback ? 48 : 38) << smcolon<Char>() << 5 << smcolon<Char>() << static_cast<int>(std::get<unsigned char>(c.value));
                     break;
-                case 2://rgb_color
+                case 2: //rgb_color
                     rgb_color rgb = std::get<rgb_color>(c.value);
                     stream << (c.isback ? 48 : 38) << smcolon<Char>() << 2
                            << smcolon<Char>() << static_cast<int>(rgb.r)
@@ -93,7 +98,7 @@ namespace sf
         public:
             SF_CONSTEXPR color_arg() : fore(user_default, false), back(user_default, true) {}
             SF_CONSTEXPR color_arg(T&& arg, color_type fore, color_type back) : arg(arg), fore(fore, false), back(back, true) {}
-            template <typename Char, typename Traits = std::char_traits<Char>>
+            template <typename Char, typename Traits>
             friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
             {
                 return stream << make_ansi_control(arg.fore, arg.back) << arg.arg << make_ansi_control();
@@ -102,6 +107,67 @@ namespace sf
     } // namespace internal
 
     using color_type = typename internal::color::color_type;
+#else
+    enum preset_color : WORD
+    {
+        black = 0x0,
+        blue = 0x1,
+        green = 0x2,
+        cyan = blue | green,
+        red = 0x4,
+        magenta = blue | red,
+        yellow = green | red,
+        white = blue | green | red,
+        bright_base = 0x8,
+        bright_black = black | bright_base,
+        bright_blue = blue | bright_base,
+        bright_green = green | bright_base,
+        bright_cyan = cyan | bright_base,
+        bright_red = red | bright_base,
+        bright_magenta = magenta | bright_base,
+        bright_yellow = yellow | bright_base,
+        bright_white = white | bright_base,
+        color_mask = 0xF,
+        background_base = 0x10,
+        user_default = 0x100,
+        extended = user_default
+    };
+
+    namespace internal
+    {
+        //Pack an arg with its foreground and background color.
+        template <typename T>
+        class color_arg
+        {
+        private:
+            T arg;
+            preset_color fore, back;
+
+        public:
+            SF_CONSTEXPR color_arg() : fore(user_default), back(user_default) {}
+            SF_CONSTEXPR color_arg(T&& arg, preset_color fore, preset_color back) : arg(arg), fore(fore), back(back) {}
+            template <typename Char, typename Traits>
+            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
+            {
+                HANDLE hc = GetStdHandle(STD_OUTPUT_HANDLE);
+                CONSOLE_SCREEN_BUFFER_INFO info;
+                WORD def = static_cast<WORD>(white) | (static_cast<WORD>(black) * background_base);
+                if (GetConsoleScreenBufferInfo(hc, &info))
+                {
+                    def = info.wAttributes;
+                }
+                WORD fw = arg.fore == user_default ? (def & color_mask) : arg.fore;
+                WORD bw = arg.back == user_default ? (def & (color_mask * background_base)) : arg.back * background_base;
+                SetConsoleTextAttribute(hc, fw | bw);
+                stream << arg.arg;
+                SetConsoleTextAttribute(hc, def);
+                return stream;
+            }
+        };
+    } // namespace internal
+
+    using color_type = preset_color;
+#endif // !SF_WIN_NATIVE_COLOR
 
     template <typename T>
     SF_CONSTEXPR internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default)
@@ -110,6 +176,6 @@ namespace sf
     }
 } // namespace sf
 
-#endif // !SF_CXX17
+#endif // SF_WIN_NATIVE_COLOR || SF_CXX17
 
 #endif // !SF_COLOR_HPP
