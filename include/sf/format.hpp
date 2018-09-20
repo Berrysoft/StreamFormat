@@ -235,7 +235,7 @@ namespace sf
             }
             stream_type& operator()(stream_type& stream)
             {
-                std::ios_base::fmtflags oldf = (std::ios_base::fmtflags)0;
+                std::ios_base::fmtflags oldf = static_cast<std::ios_base::fmtflags>(0);
                 if (Traits::eq(fmtc, cdec<Char>()) || Traits::eq(fmtc, cDEC<Char>()))
                 {
                     oldf = stream.setf(std::ios_base::dec, std::ios_base::basefield);
