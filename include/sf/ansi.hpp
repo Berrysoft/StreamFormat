@@ -46,7 +46,7 @@ namespace sf
         template <typename Char, typename Traits>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<>& args)
         {
-            return stream << esc<Char>() << sqr_bra<Char>() << 0 << ansi_end<Char>();
+            return stream << esc<Char>() << sqr_bra<Char>() << ansi_end<Char>();
         }
 
         //Write Console Virtual Terminal Sequences (ANSI Control Characters) to a stream.
