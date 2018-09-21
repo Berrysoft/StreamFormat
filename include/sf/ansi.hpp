@@ -18,25 +18,25 @@ namespace sf
         SF_CHAR_TEMPLATE(smcolon, ';')
         SF_CHAR_TEMPLATE(ansi_end, 'm')
 
-        template <typename Char, typename Traits, typename Arg0, typename... Args>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0, Args&&... args)
+        template <typename Char, typename Traits>
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream)
         {
-            return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>(), std::forward<Args>(args)...);
+            return stream;
         }
         template <typename Char, typename Traits, typename Arg0>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0)
         {
             return stream << std::forward<Arg0>(arg0);
         }
-        template <typename Char,typename Traits>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream)
+        template <typename Char, typename Traits, typename Arg0, typename... Args>
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0, Args&&... args)
         {
-            return stream;
+            return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>(), std::forward<Args>(args)...);
         }
         template <typename Char, typename Traits, typename... Args, std::size_t... Indices>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, std::index_sequence<Indices...>)
         {
-            return join_args(stream, std::forward<Args>(std::get<Indices>(args))...);
+            return join_args(stream, std::get<Indices>(args)...);
         }
 
         template <typename Char, typename Traits, typename... Args>
