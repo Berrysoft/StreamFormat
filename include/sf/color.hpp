@@ -25,7 +25,7 @@ namespace sf
         underline,
         blink,
         rapid,
-        reverse,
+        reverse_video,
         conceal,
         crossed,
         primary,
@@ -209,6 +209,11 @@ namespace sf
     SF_CONSTEXPR internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal)
     {
         return internal::color_arg<T>(std::forward<T>(arg), fore, back, sgr);
+    }
+    template <typename T>
+    SF_CONSTEXPR internal::color_arg<T> make_color_arg(T&& arg, sgr_chars sgr)
+    {
+        return internal::color_arg<T>(std::forward<T>(arg), user_default, user_default, sgr);
     }
 } // namespace sf
 

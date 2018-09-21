@@ -52,6 +52,17 @@ namespace sf
         template <typename Stream>
         using arg_list_t = typename arg<Stream>::list_type;
 
+        template <io_state IOState, typename T, typename Stream>
+        SF_CONSTEXPR std::enable_if_t<IOState == input, Stream>& operate_arg_io(Stream& stream, T&& arg)
+        {
+            return stream >> arg;
+        }
+        template <io_state IOState, typename T, typename Stream>
+        SF_CONSTEXPR std::enable_if_t<IOState == output, Stream>& operate_arg_io(Stream& stream, T&& arg)
+        {
+            return stream << arg;
+        }
+
         //A packed arg.
         template <io_state IOState, typename T, typename Char, typename Traits>
         class arg_io
@@ -61,22 +72,12 @@ namespace sf
 
         private:
             T arg;
-            template <io_state State>
-            SF_CONSTEXPR std::enable_if_t<State == input, stream_type>& operate(stream_type& stream)
-            {
-                return stream >> arg;
-            }
-            template <io_state State>
-            SF_CONSTEXPR std::enable_if_t<State == output, stream_type>& operate(stream_type& stream)
-            {
-                return stream << arg;
-            }
 
         public:
             arg_io(T&& arg) : arg(std::forward<T>(arg)) {}
             SF_CONSTEXPR stream_type& operator()(stream_type& stream)
             {
-                return operate<IOState>(stream);
+                return operate_arg_io<IOState, T, stream_type>(stream, static_cast<T&&>(arg));
             }
         };
 
