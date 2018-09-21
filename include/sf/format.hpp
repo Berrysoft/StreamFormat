@@ -167,6 +167,9 @@ namespace sf
 
         SF_CHAR_TEMPLATE(colon, ':')
 
+        SF_CHAR_TEMPLATE(cbla, 'b')
+        SF_CHAR_TEMPLATE(cBLA, 'B')
+
         SF_CHAR_TEMPLATE(cdec, 'd')
         SF_CHAR_TEMPLATE(cDEC, 'D')
 
@@ -195,6 +198,7 @@ namespace sf
         SF_CHAR_TEMPLATE(cHEX, 'X')
 
         //Parse format string and set stream flag.
+        //B -> boolalpha
         //D -> dec
         //E -> scientific
         //F -> fixed
@@ -236,6 +240,7 @@ namespace sf
             stream_type& operator()(stream_type& stream)
             {
                 std::ios_base::fmtflags oldf = static_cast<std::ios_base::fmtflags>(0);
+                //Determine chars.
                 if (Traits::eq(fmtc, cdec<Char>()) || Traits::eq(fmtc, cDEC<Char>()))
                 {
                     oldf = stream.setf(std::ios_base::dec, std::ios_base::basefield);
@@ -284,12 +289,24 @@ namespace sf
                 }
                 else if (Traits::eq(fmtc, cgen<Char>()) || Traits::eq(fmtc, cGEN<Char>()))
                 {
+                    //General, doesn't need any flags.
                 }
                 else
                 {
                     throw std::logic_error("Invalid format character.");
                 }
-                if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cGEN<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()))
+                //Boolalpha.
+                if (Traits::eq(fmtc, cbla<Char>()) || Traits::eq(fmtc, cBLA<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::boolalpha);
+                }
+                else
+                {
+                    stream.unsetf(std::ios_base::boolalpha);
+                    oldf |= std::ios_base::boolalpha;
+                }
+                //Uppercase.
+                if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cGEN<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()) || Traits::eq(fmtc, cBLA<Char>()))
                 {
                     stream.setf(std::ios_base::uppercase);
                 }
