@@ -492,6 +492,11 @@ namespace sf
     {
         return print(std::cout, fmt, std::forward<Args>(args)...);
     }
+    template <typename... Args>
+    SF_CONSTEXPR std::ostream& println(std::string_view fmt, Args&&... args)
+    {
+        return print(std::cout, fmt, std::forward<Args>(args)...) << std::endl;
+    }
 
     //wchar_t IO
     template <typename... Args>
@@ -513,6 +518,11 @@ namespace sf
     SF_CONSTEXPR std::wostream& print(std::wstring_view fmt, Args&&... args)
     {
         return print(std::wcout, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    SF_CONSTEXPR std::wostream& println(std::wstring_view fmt, Args&&... args)
+    {
+        return print(std::wcout, fmt, std::forward<Args>(args)...) << std::endl;
     }
 
     //Simple IO functions for convinence.
@@ -540,6 +550,11 @@ namespace sf
     {
         return print(std::cout, std::forward<T>(arg));
     }
+    template <typename T>
+    SF_CONSTEXPR std::ostream& println(T&& arg)
+    {
+        return print(std::cout, std::forward<T>(arg)) << std::endl;
+    }
 #else
     //wchar_t IO
     template <typename T>
@@ -551,6 +566,11 @@ namespace sf
     SF_CONSTEXPR std::wostream& print(T&& arg)
     {
         return print(std::wcout, std::forward<T>(arg));
+    }
+    template <typename T>
+    SF_CONSTEXPR std::wostream& println(T&& arg)
+    {
+        return print(std::wcout, std::forward<T>(arg)) << std::endl;
     }
 #endif // !SF_FORCE_WIDE_IO
 } // namespace sf

@@ -14,7 +14,7 @@ int main()
     oss << sprint("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));
     if (oss.str() == "Test\n\n0xfee1dead\nHello, world!\ntrue    \n123{321}123\n")
     {
-        print("Success.\n");
+        println("Success.");
     }
     return 0;
 }
