@@ -167,6 +167,7 @@ namespace sf
         };
 
         SF_CHAR_TEMPLATE(colon, ':')
+        SF_CHAR_TEMPLATE(comma, ',')
 
         SF_CHAR_TEMPLATE(cbla, 'b')
         SF_CHAR_TEMPLATE(cBLA, 'B')
@@ -210,35 +211,19 @@ namespace sf
         //R -> right
         //X -> hex
         template <io_state IOState, typename Char, typename Traits>
-        class format_arg_io
+        class format_opt
         {
         public:
             typedef stream_t<IOState, Char, Traits> stream_type;
-            typedef arg_t<stream_type> arg_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
-            arg_type& ori;
             Char fmtc;
             int fmtf;
 
         public:
-            format_arg_io(arg_type& ori, const string_view_type& str) : ori(ori), fmtf(0)
-            {
-                if (str.empty())
-                {
-                    fmtc = cgen<Char>();
-                }
-                else
-                {
-                    fmtc = str[0];
-                    if (str.length() > 1)
-                    {
-                        fmtf = stoi(str.substr(1));
-                    }
-                }
-            }
-            stream_type& operator()(stream_type& stream)
+            format_opt(Char fmtc, int fmtf) : fmtc(fmtc), fmtf(fmtf) {}
+            std::ios_base::fmtflags setf(stream_type& stream)
             {
                 std::ios_base::fmtflags oldf = static_cast<std::ios_base::fmtflags>(0);
                 //Determine chars.
@@ -308,6 +293,45 @@ namespace sf
                 else
                 {
                     stream.unsetf(std::ios_base::uppercase);
+                }
+                return oldf;
+            }
+        };
+
+        template <io_state IOState, typename Char, typename Traits>
+        class format_arg_io
+        {
+        public:
+            typedef stream_t<IOState, Char, Traits> stream_type;
+            typedef arg_t<stream_type> arg_type;
+            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef typename string_view_type::size_type int_type;
+
+        private:
+            arg_type& ori;
+            const string_view_type& fmts;
+
+        public:
+            format_arg_io(arg_type& ori, const string_view_type& fmts) : ori(ori), fmts(fmts) {}
+            stream_type& operator()(stream_type& stream)
+            {
+                std::ios_base::fmtflags oldf = static_cast<std::ios_base::fmtflags>(0);
+                int_type length = fmts.length();
+                int_type offset = 0, index = 0;
+                for (; index <= length; index++)
+                {
+                    if (index == length || Traits::eq(fmts[index], comma<Char>()))
+                    {
+                        Char fmtc = fmts[offset];
+                        int fmtf = 0;
+                        int_type len = index - offset - 1;
+                        if (len > 0)
+                        {
+                            fmtf = stoi(fmts.substr(offset + 1, len));
+                        }
+                        oldf |= format_opt<IOState, Char, Traits>(fmtc, fmtf).setf(stream);
+                        offset = index + 1;
+                    }
                 }
                 ori(stream);
                 if (oldf)
@@ -393,10 +417,13 @@ namespace sf
                         else
                         {
                             in_number = false;
-                            int_type ci = fmt.find(colon<Char>(), offset);
-                            if (ci > index)
+                            int_type ci = offset;
+                            for (; ci < index; ci++)
                             {
-                                ci = index;
+                                if (Traits::eq(fmt[ci], colon<Char>()))
+                                {
+                                    break;
+                                }
                             }
                             std::size_t i = stoull(fmt.substr(offset, ci - offset));
                             if (i >= args.size())
