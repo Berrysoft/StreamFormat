@@ -288,6 +288,10 @@ namespace sf
                     stream.fill(' ');
                     stream.width(fmtf);
                 }
+                else if (Traits::eq(fmtc, cbla<Char>()) || Traits::eq(fmtc, cBLA<Char>()))
+                {
+                    oldf = stream.setf(std::ios_base::boolalpha);
+                }
                 else if (Traits::eq(fmtc, cgen<Char>()) || Traits::eq(fmtc, cGEN<Char>()))
                 {
                     //General, doesn't need any flags.
@@ -295,16 +299,6 @@ namespace sf
                 else
                 {
                     throw std::logic_error("Invalid format character.");
-                }
-                //Boolalpha.
-                if (Traits::eq(fmtc, cbla<Char>()) || Traits::eq(fmtc, cBLA<Char>()))
-                {
-                    oldf = stream.setf(std::ios_base::boolalpha);
-                }
-                else
-                {
-                    stream.unsetf(std::ios_base::boolalpha);
-                    oldf |= std::ios_base::boolalpha;
                 }
                 //Uppercase.
                 if (Traits::eq(fmtc, cDEC<Char>()) || Traits::eq(fmtc, cOCT<Char>()) || Traits::eq(fmtc, cHEX<Char>()) || Traits::eq(fmtc, cSCI<Char>()) || Traits::eq(fmtc, cFIX<Char>()) || Traits::eq(fmtc, cGEN<Char>()) || Traits::eq(fmtc, cLFT<Char>()) || Traits::eq(fmtc, cRIT<Char>()) || Traits::eq(fmtc, cITN<Char>()) || Traits::eq(fmtc, cBLA<Char>()))
