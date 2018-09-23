@@ -9,7 +9,6 @@
 #include <functional>
 #include <iostream>
 #include <sf/stoi.hpp>
-#include <string>
 #include <vector>
 
 namespace sf
