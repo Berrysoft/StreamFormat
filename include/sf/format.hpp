@@ -157,11 +157,7 @@ namespace sf
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& os)
             {
-                if (os)
-                {
-                    os.write(arg.data(), arg.length());
-                }
-                return os;
+                return os << arg;
             }
         };
 
@@ -374,22 +370,17 @@ namespace sf
                         {
                             if (Traits::eq(fmt[index], left_brace<Char>()))
                             {
-                                if (index + 1 < length && Traits::eq(fmt[index + 1], left_brace<Char>()))
-                                {
-                                    index++;
-                                }
-                                else
+                                index++;
+                                if (!(index < length && Traits::eq(fmt[index], left_brace<Char>())))
                                 {
                                     in_number = true;
+                                    index--;
                                 }
                             }
                             else if (Traits::eq(fmt[index], right_brace<Char>()))
                             {
-                                if (index + 1 < length && Traits::eq(fmt[index + 1], right_brace<Char>()))
-                                {
-                                    index++;
-                                }
-                                else
+                                index++;
+                                if (!(index < length && Traits::eq(fmt[index], right_brace<Char>())))
                                 {
                                     throw std::logic_error("No \"{\" matches \"}\".");
                                 }
@@ -416,8 +407,8 @@ namespace sf
                         else
                         {
                             in_number = false;
-                            int_type ci = offset;
-                            for (; ci < index; ci++)
+                            int_type ci;
+                            for (ci = offset; ci < index; ci++)
                             {
                                 if (Traits::eq(fmt[ci], colon<Char>()))
                                 {
@@ -429,13 +420,13 @@ namespace sf
                             {
                                 string_view_io_type(fmt.substr(offset - 1, index - offset + 2))(stream);
                             }
-                            else if (index - ci > 0)
+                            else if (index == ci)
                             {
-                                format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1))(stream);
+                                args[i](stream);
                             }
                             else
                             {
-                                args[i](stream);
+                                format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1))(stream);
                             }
                             offset = index + 1;
                         }
@@ -469,6 +460,11 @@ namespace sf
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    {
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
+    }
 
     //char IO
     template <typename... Args>
@@ -492,9 +488,14 @@ namespace sf
         return print(std::cout, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
+    SF_CONSTEXPR std::ostream& println(std::ostream& stream, std::string_view fmt, Args&&... args)
+    {
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
+    }
+    template <typename... Args>
     SF_CONSTEXPR std::ostream& println(std::string_view fmt, Args&&... args)
     {
-        return print(std::cout, fmt, std::forward<Args>(args)...) << std::endl;
+        return println(std::cout, fmt, std::forward<Args>(args)...);
     }
 
     //wchar_t IO
@@ -519,9 +520,14 @@ namespace sf
         return print(std::wcout, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
+    SF_CONSTEXPR std::wostream& println(std::wostream& stream, std::wstring_view fmt, Args&&... args)
+    {
+        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
+    }
+    template <typename... Args>
     SF_CONSTEXPR std::wostream& println(std::wstring_view fmt, Args&&... args)
     {
-        return print(std::wcout, fmt, std::forward<Args>(args)...) << std::endl;
+        return println(std::wcout, fmt, std::forward<Args>(args)...);
     }
 
     //Simple IO functions for convinence.
@@ -536,6 +542,11 @@ namespace sf
     SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, T&& arg)
     {
         return internal::format<internal::output, Char, Traits, T>(stream, std::forward<T>(arg));
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, T&& arg)
+    {
+        return internal::format<internal::output, Char, Traits, T>(stream, std::forward<T>(arg)) << std::endl;
     }
 #ifndef SF_FORCE_WIDE_IO
     //char IO
@@ -552,7 +563,7 @@ namespace sf
     template <typename T>
     SF_CONSTEXPR std::ostream& println(T&& arg)
     {
-        return print(std::cout, std::forward<T>(arg)) << std::endl;
+        return println(std::cout, std::forward<T>(arg));
     }
 #else
     //wchar_t IO
@@ -569,7 +580,7 @@ namespace sf
     template <typename T>
     SF_CONSTEXPR std::wostream& println(T&& arg)
     {
-        return print(std::wcout, std::forward<T>(arg)) << std::endl;
+        return println(std::wcout, std::forward<T>(arg));
     }
 #endif // !SF_FORCE_WIDE_IO
 } // namespace sf
