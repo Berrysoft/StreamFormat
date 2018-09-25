@@ -365,6 +365,7 @@ namespace sf
                 int_type offset = 0, index = 0;
                 const int_type length = fmt.length();
                 bool in_number = false;
+                std::size_t arg_index = 0;
                 while (offset < length)
                 {
                     if (!in_number)
@@ -419,20 +420,24 @@ namespace sf
                                     break;
                                 }
                             }
-                            std::size_t i = stoull(fmt.substr(offset, ci - offset));
-                            if (i >= args.size())
+                            if (ci > offset)
+                            {
+                                arg_index = stoull(fmt.substr(offset, ci - offset));
+                            }
+                            if (arg_index >= args.size())
                             {
                                 string_view_io_type(fmt.substr(offset - 1, index - offset + 2))(stream);
                             }
                             else if (index == ci)
                             {
-                                args[i](stream);
+                                args[arg_index](stream);
                             }
                             else
                             {
-                                format_arg_io<IOState, Char, Traits>(args[i], fmt.substr(ci + 1, index - ci - 1))(stream);
+                                format_arg_io<IOState, Char, Traits>(args[arg_index], fmt.substr(ci + 1, index - ci - 1))(stream);
                             }
                             offset = index + 1;
+                            arg_index++;
                         }
                     }
                 }

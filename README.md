@@ -8,7 +8,17 @@ sf::print("Hello, {0}!\n", "world");            //Hello, world!
 sf::print("Meaning of the life: {0}.\n", 42);   //Meaning of the life: 42.
 sf::print("0x{0:x8}\n", 4276215469);            //0xfee1dead
 ```
-And you can `print` to other streams:
+And you can write it like Python:
+``` c++
+sf::print("The big {} {} ", "brown", "fox");
+//If you don't write the index, it will increase automatically.
+sf::print("{2} over the {0} {}.\n", "lazy", "dog", "jumps");
+```
+If the index is larger than the size of the arguments, it won't be formatted:
+``` c++
+sf::print("{0}{10000}{0}\n", "123");//123{10000}123
+```
+Additionally, you can `print` to other streams:
 ``` c++
 sf::print(std::clog, "{0}:{1}", 11, 59);
 std::ostringstream oss;
@@ -33,9 +43,11 @@ sf::print("a = {0}, b = {1}\n", a, b);//a = 123, b = 456
 
 std::istringstream iss("HTTP/1.1");
 double ver;
-sf::scan(iss, "HTTP/{0}", ver);
+sf::scan(iss, "HTTP/{}", ver);
 sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ```
+It is an undefined behavior to pass an rvalue to `scan`.
+
 `sscan` returns a part of the string which wasn't scanned:
 ``` c++
 int i; std::string s;
@@ -44,5 +56,5 @@ std::string ret = sf::sscan("123 abc !!!", "{0}{1}", i, s);//ret == " !!!"
 ### Colors
 `make_color_arg` function helps you to wrap an argument with specified foreground and background color:
 ``` c++
-sf::print("{0}, {1}!\n", sf::make_color_arg("Hello", yellow), sf::make_color_arg("world", cyan, true, blue, false));
+sf::print("{0}, {1}!\n", sf::make_color_arg("Hello", yellow), sf::make_color_arg("world", bright_cyan, blue));
 ```

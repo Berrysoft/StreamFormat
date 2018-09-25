@@ -8,8 +8,8 @@ int main()
     ostringstream oss;
     print(oss, "Test\n");
     print(oss, "{0}", '\n');
-    println(oss, "0x{0:x8}", 4276215469);//0xfee1dead
-    print(oss, "{0}\n", "Hello, world!");
+    println(oss, "0x{:x8}", 4276215469);//0xfee1dead
+    print(oss, "{}\n", "Hello, world!");
     print(oss, "{0:b,l8}", true);
     println<char>(oss);
     oss << sprint("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));

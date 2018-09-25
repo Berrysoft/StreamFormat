@@ -9,14 +9,14 @@ int main(int argc, char** argv)
     {
         int a, b;
         string result;
-        auto pos = sscan(argv[1], "{0}{1}", a, b);
+        auto pos = sscan(argv[1], "{}{1}", a, b);
         if (pos != decltype(pos)(-1))
         {
             result = sprint(argv[1] + pos);
         }
         else
         {
-            result = sprint("{0} + {1} = {2}", a, b, a + b);
+            result = sprint("{0} + {} = {2}", a, b, a + b);
         }
         if (result == argv[2])
         {
