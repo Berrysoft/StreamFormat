@@ -14,6 +14,8 @@ sf::print(std::clog, "{0}:{1}", 11, 59);
 std::ostringstream oss;
 sf::print(oss, "This message is printed.\n") << "And this is shifted." << endl;
 ```
+`println` is a similar function, which will `<< std::endl` after `print`. As `std::endl` will `flush` the stream, `println("...")` is a little different from `print("...\n")`.
+
 `print` returns the stream object you have just printed, while `sprint` returns a string:
 ``` c++
 std::string s = sf::sprint("{0}{{{1}}}{0}", "123", "321");//123{321}123

@@ -157,7 +157,11 @@ namespace sf
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& os)
             {
-                return os << arg;
+                if (!arg.empty())
+                {
+                    os.write(arg.data(), arg.size());
+                }
+                return os;
             }
         };
 
@@ -546,7 +550,12 @@ namespace sf
     template <typename Char, typename Traits = std::char_traits<Char>, typename T>
     SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, T&& arg)
     {
-        return internal::format<internal::output, Char, Traits, T>(stream, std::forward<T>(arg)) << std::endl;
+        return print<Char, Traits, T>(stream, std::forward<T>(arg)) << std::endl;
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream)
+    {
+        return print<Char, Traits>(stream, std::endl<Char, Traits>);
     }
 #ifndef SF_FORCE_WIDE_IO
     //char IO
@@ -565,6 +574,10 @@ namespace sf
     {
         return println(std::cout, std::forward<T>(arg));
     }
+    SF_CONSTEXPR std::ostream& println()
+    {
+        return println<char>(std::cout);
+    }
 #else
     //wchar_t IO
     template <typename T>
@@ -581,6 +594,10 @@ namespace sf
     SF_CONSTEXPR std::wostream& println(T&& arg)
     {
         return println(std::wcout, std::forward<T>(arg));
+    }
+    SF_CONSTEXPR std::wostream& println()
+    {
+        return println<wchar_t>(std::wcout);
     }
 #endif // !SF_FORCE_WIDE_IO
 } // namespace sf
