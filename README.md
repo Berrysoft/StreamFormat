@@ -46,7 +46,7 @@ double ver;
 sf::scan(iss, "HTTP/{}", ver);
 sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ```
-It is an undefined behavior to pass an rvalue to `scan`.
+It is an well-defined behavior to pass an rvalue to `scan`, if and only if the type of the argument is *MoveConstructible*.
 
 `sscan` returns an index from which the part of the string that wasn't scanned starts:
 ``` c++

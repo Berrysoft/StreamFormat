@@ -76,6 +76,11 @@ template <
 > constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, T&& arg);
 ```
 
+|Param|Summary|
+|-|-|
+|`stream`|The stream to output.|
+|`arg`|Argument to print.|
+
 *6* prints to `std::cout` (if `SF_FORCE_WIDE_IO` not defined) or `std::wcout` (if `SF_FORCE_WIDE_IO` defined).
 
 A simple implementation of *7* is:
