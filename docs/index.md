@@ -1,5 +1,6 @@
 # StreamFormat
 StreamFormat is a template library, thus it contains only headers. Here are all the **public** headers(in which the APIs won't change occasionally):
+
 |Header|Contents|
 |-|-|
 |[`<sf/format.hpp>`](./format/index.md)|IO functions.|
