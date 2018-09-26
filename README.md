@@ -48,13 +48,14 @@ sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ```
 It is an undefined behavior to pass an rvalue to `scan`.
 
-`sscan` returns a part of the string which wasn't scanned:
+`sscan` returns an index from which the part of the string that wasn't scanned starts:
 ``` c++
+std::string str = "123 abc !!!";
 int i; std::string s;
-std::string ret = sf::sscan("123 abc !!!", "{0}{1}", i, s);//ret == " !!!"
+std::string ret = str.substr(sf::sscan(str, "{0}{1}", i, s));//ret == " !!!"
 ```
 ### Colors
-`make_color_arg` function helps you to wrap an argument with specified foreground and background color:
+`make_color_arg` function helps you to wrap an argument with specified foreground color, background color and font style:
 ``` c++
-sf::print("{0}, {1}!\n", sf::make_color_arg("Hello", yellow), sf::make_color_arg("world", bright_cyan, blue));
+sf::print("{0}, {1}!\n", sf::make_color_arg("Hello", yellow), sf::make_color_arg("world", bright_cyan, blue, underline));
 ```
