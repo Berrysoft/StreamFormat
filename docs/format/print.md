@@ -37,7 +37,7 @@ template <
 
 *1* prints to `std::cout` and *3* prints to `std::wcout`.
 
-The `fmt` string references an argument by its index, starts with 0, and embrace the index with `{}`. If the index embraced is out of range, it won't be formatted.
+The `fmt` string refers an argument by its index, starts with 0, and embrace the index with `{}`. If the index embraced is out of range, it won't be formatted.
 
 You can specify the format style of the argument, with the syntax `{<index>:<flag>[<number>][,<flag>[<number>]...]}`. The flag range from:
 
@@ -91,3 +91,5 @@ constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Trait
     return stream << std::forward<T>(arg);
 }
 ```
+
+All `print` functions return the `stream` printed to.

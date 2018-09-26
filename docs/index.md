@@ -4,6 +4,6 @@ StreamFormat is a template library, thus it contains only headers. Here are all 
 |Header|Contents|
 |-|-|
 |[`<sf/format.hpp>`](./format/index.md)|IO functions.|
-|`<sf/sformat.hpp>`|Format IO functions for `std::basic_string`.|
+|[`<sf/sformat.hpp>`](./sformat/index.md)|Format IO functions for `std::basic_string`.|
 |`<sf/ansi.hpp>`|A function to write ANSI escape code.|
 |`<sf/color.hpp>`|Classes and functions to output colorfully.|

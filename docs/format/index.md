@@ -1,6 +1,5 @@
 # `<sf/format.hpp>`
 This header contains format IO functions to a stream:
-## Output
 |Function|Use|
 |-|-|
 |[`scan`](./scan.md)|Format from input standard or other streams.|
