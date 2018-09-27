@@ -28,7 +28,7 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX11)
+#ifdef SF_CXX11
 
 #include <sf/format.hpp>
 #include <sstream>

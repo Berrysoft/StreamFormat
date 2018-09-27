@@ -28,8 +28,6 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_WIN_NATIVE_COLOR) || (defined(SF_CXX11))
-
 #ifdef SF_WIN_NATIVE_COLOR
 #include <Windows.h>
 #else
@@ -255,7 +253,5 @@ namespace sf
         return internal::color_arg<T>(std::forward<T>(arg), user_default, user_default, sgr);
     }
 } // namespace sf
-
-#endif // SF_WIN_NATIVE_COLOR || SF_CXX11
 
 #endif // !SF_COLOR_HPP

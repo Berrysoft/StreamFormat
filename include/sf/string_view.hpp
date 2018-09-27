@@ -62,7 +62,7 @@ namespace sf
         {
         }
 
-#if defined(SF_CXX17)
+#ifdef SF_CXX17
         SF_CONSTEXPR basic_string_view(const std::basic_string_view<Char, Traits>& s) : m_start(s.data()), m_size(s.length())
         {
         }

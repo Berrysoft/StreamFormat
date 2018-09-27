@@ -28,8 +28,6 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX11)
-
 #include <sf/string_view.hpp>
 #include <string>
 
@@ -53,6 +51,5 @@ namespace sf
         SF_STOI_TEMPLATE(stoull, unsigned long long)
     } // namespace internal
 } // namespace sf
-#endif // SF_CXX11
 
 #endif // !SF_STOI_HPP
