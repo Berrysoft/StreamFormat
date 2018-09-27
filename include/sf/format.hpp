@@ -180,13 +180,9 @@ namespace sf
 
         public:
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
-            stream_type& operator()(stream_type& os)
+            SF_CONSTEXPR stream_type& operator()(stream_type& os)
             {
-                if (!arg.empty())
-                {
-                    os.write(arg.data(), arg.length());
-                }
-                return os;
+                return os << arg;
             }
         };
 

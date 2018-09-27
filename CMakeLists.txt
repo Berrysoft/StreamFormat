@@ -13,7 +13,7 @@ function(add_headers VAR)
   set(${VAR} ${headers} PARENT_SCOPE)
 endfunction()
 
-add_headers(SF_HEADERS utility.hpp ansi.hpp color.hpp stoi.hpp format.hpp sformat.hpp)
+add_headers(SF_HEADERS utility.hpp ansi.hpp color.hpp string_view.hpp stoi.hpp format.hpp sformat.hpp)
 
 install(FILES ${SF_HEADERS} DESTINATION include/sf)
 

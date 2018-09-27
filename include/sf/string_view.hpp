@@ -86,6 +86,12 @@ namespace sf
         SF_CONSTEXPR iterator end() const SF_NOEXCEPT { return m_start + m_size; }
     };
 
+    template <typename Char, typename Traits>
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const basic_string_view<Char, Traits>& str)
+    {
+        return str.empty() ? stream : stream.write(str.data(), str.length());
+    }
+
     typedef basic_string_view<char> string_view;
     typedef basic_string_view<wchar_t> wstring_view;
 } // namespace sf
