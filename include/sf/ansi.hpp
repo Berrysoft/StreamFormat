@@ -28,7 +28,7 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX11) || _MSC_VER >= 1900
+#if defined(SF_CXX11)
 
 #include <ostream>
 #include <tuple>
@@ -57,8 +57,37 @@ namespace sf
         {
             return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>(), std::forward<Args>(args)...);
         }
+
+        template <std::size_t... Indices>
+        struct index_sequence
+        {
+        };
+
+        template <std::size_t N, typename = void>
+        struct make_index_sequence_impl
+        {
+            template <typename>
+            struct tmp;
+
+            template <std::size_t... Prev>
+            struct tmp<index_sequence<Prev...>>
+            {
+                using type = index_sequence<Prev..., N - 1>;
+            };
+
+            using type = typename tmp<typename make_index_sequence_impl<N - 1>::type>::type;
+        };
+        template <std::size_t N>
+        struct make_index_sequence_impl<N, typename std::enable_if<N == 0>::type>
+        {
+            using type = index_sequence<>;
+        };
+
+        template <std::size_t N>
+        using make_index_sequence = typename make_index_sequence_impl<N>::type;
+
         template <typename Char, typename Traits, typename... Args, std::size_t... Indices>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, std::index_sequence<Indices...>)
+        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, index_sequence<Indices...>)
         {
             return join_args(stream, std::get<Indices>(args)...);
         }
@@ -66,10 +95,7 @@ namespace sf
         template <typename Char, typename Traits, typename... Args>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args)
         {
-            stream << esc<Char>() << sqr_bra<Char>();
-            join_args_helper(stream, args, std::make_index_sequence<sizeof...(Args)>());
-            stream << ansi_end<Char>();
-            return stream;
+            return join_args_helper(stream << esc<Char>() << sqr_bra<Char>(), args, make_index_sequence<sizeof...(Args)>()) << ansi_end<Char>();
         }
 
         //Write Console Virtual Terminal Sequences (ANSI Control Characters) to a stream.

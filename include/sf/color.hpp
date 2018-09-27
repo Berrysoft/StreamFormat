@@ -28,13 +28,12 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_WIN_NATIVE_COLOR) || (defined(SF_CXX17) || _MSC_VER >= 1910)
+#if defined(SF_WIN_NATIVE_COLOR) || (defined(SF_CXX11))
 
 #ifdef SF_WIN_NATIVE_COLOR
 #include <Windows.h>
 #else
 #include <sf/ansi.hpp>
-#include <variant>
 #endif // SF_WIN_NATIVE_COLOR
 
 namespace sf
@@ -106,11 +105,30 @@ namespace sf
 
     namespace internal
     {
+        class color_type
+        {
+        private:
+            union {
+                preset_color pcolor;
+                unsigned char ccolor;
+                rgb_color rgbcolor;
+            };
+            std::size_t m_index;
+
+        public:
+            SF_CONSTEXPR std::size_t index() const SF_NOEXCEPT { return m_index; }
+            SF_CONSTEXPR preset_color get_preset_color() const { return pcolor; }
+            SF_CONSTEXPR unsigned char get_char_color() const { return ccolor; }
+            SF_CONSTEXPR rgb_color get_rgb_color() const { return rgbcolor; }
+
+            SF_CONSTEXPR color_type() SF_NOEXCEPT : pcolor(user_default), m_index(0) {}
+            SF_CONSTEXPR color_type(const color_type&) SF_NOEXCEPT = default;
+            SF_CONSTEXPR color_type(preset_color value) : pcolor(value), m_index(0) {}
+            SF_CONSTEXPR color_type(unsigned char value) : ccolor(value), m_index(1) {}
+            SF_CONSTEXPR color_type(rgb_color value) : rgbcolor(value), m_index(2) {}
+        };
         class color
         {
-        public:
-            typedef std::variant<preset_color, unsigned char, rgb_color> color_type;
-
         private:
             color_type value;
             bool isback;
@@ -124,13 +142,13 @@ namespace sf
                 switch (c.value.index())
                 {
                 case 0: //preset_color
-                    stream << (static_cast<int>(std::get<preset_color>(c.value)) + (c.isback ? 10 : 0));
+                    stream << (static_cast<int>(c.value.get_preset_color()) + (c.isback ? 10 : 0));
                     break;
                 case 1: //unsigned char
-                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(std::get<unsigned char>(c.value)));
+                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(c.value.get_char_color()));
                     break;
                 case 2: //rgb_color
-                    rgb_color rgb = std::get<rgb_color>(c.value);
+                    rgb_color rgb = c.value.get_rgb_color();
                     join_args(stream, static_cast<int>(c.isback ? background : foreground), 2, static_cast<int>(rgb.r), static_cast<int>(rgb.g), static_cast<int>(rgb.b));
                     break;
                 }
@@ -142,9 +160,6 @@ namespace sf
         template <typename T>
         class color_arg
         {
-        public:
-            typedef color::color_type color_type;
-
         private:
             T arg;
             color fore, back;
@@ -161,7 +176,7 @@ namespace sf
         };
     } // namespace internal
 
-    using color_type = typename internal::color::color_type;
+    using color_type = internal::color_type;
 #else
     enum sgr_chars : WORD
     {
@@ -241,6 +256,6 @@ namespace sf
     }
 } // namespace sf
 
-#endif // SF_WIN_NATIVE_COLOR || SF_CXX17
+#endif // SF_WIN_NATIVE_COLOR || SF_CXX11
 
 #endif // !SF_COLOR_HPP

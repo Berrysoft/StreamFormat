@@ -28,14 +28,15 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX17) || _MSC_VER >= 1910
+#if defined(SF_CXX11)
 
+#include <sf/string_view.hpp>
 #include <string>
 
 #ifndef SF_STOI_TEMPLATE
 #define SF_STOI_TEMPLATE(name, type)                                                 \
     template <typename Char, typename Traits>                                        \
-    SF_CONSTEXPR type name(const std::basic_string_view<Char, Traits>& str)          \
+    SF_CONSTEXPR type name(const basic_string_view<Char, Traits>& str)               \
     {                                                                                \
         return std::name(std::basic_string<Char, Traits>(str.data(), str.length())); \
     }
@@ -50,8 +51,8 @@ namespace sf
         SF_STOI_TEMPLATE(stoll, long long)
         SF_STOI_TEMPLATE(stoul, unsigned long)
         SF_STOI_TEMPLATE(stoull, unsigned long long)
-    }
-}
-#endif // SF_CXX17
+    } // namespace internal
+} // namespace sf
+#endif // SF_CXX11
 
 #endif // !SF_STOI_HPP

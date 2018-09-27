@@ -26,23 +26,28 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#if !defined(SF_CXX11) && __cplusplus >= 201103L
+#if !defined(SF_CXX11) && __cplusplus >= 201103L || _MSVC_LANG >= 201103L
 #define SF_CXX11
 #endif // C++11
 
-#if !defined(SF_CXX14) && __cplusplus >= 201402L
+#if !defined(SF_CXX14) && __cplusplus >= 201402L || _MSVC_LANG >= 201402L
 #define SF_CXX14
 #endif // C++14
 
-#if !defined(SF_CXX17) && __cplusplus >= 201703L
+#if !defined(SF_CXX17) && __cplusplus >= 201703L || _MSVC_LANG >= 201703L
 #define SF_CXX17
 #endif // C++17
 
 #ifndef SF_CONSTEXPR
 #if defined(SF_CXX14) || _MSC_VER >= 1910
 #define SF_CONSTEXPR constexpr
+#define SF_CONSTEXPR_DECL constexpr
+#elif defined(SF_CXX11) || _MSC_VER >= 1900
+#define SF_CONSTEXPR inline
+#define SF_CONSTEXPR_DECL constexpr
 #else
 #define SF_CONSTEXPR inline
+#define SF_CONSTEXPR_DECL
 #endif // SF_CXX14
 #endif // !SF_CONSTEXPR
 
@@ -53,6 +58,14 @@
 #define SF_NOEXCEPT throw()
 #endif // SF_CXX11
 #endif // !SF_NOEXCEPT
+
+#ifndef SF_NULLPTR
+#if defined(SF_CXX11) || _MSC_VER >= 1600
+#define SF_NULLPTR nullptr
+#else
+#define SF_NULLPTR 0
+#endif // SF_CXX11
+#endif // !SF_NULLPTR
 
 #ifndef SF_CHAR_TEMPLATE
 #define SF_CHAR_TEMPLATE(name, value)        \

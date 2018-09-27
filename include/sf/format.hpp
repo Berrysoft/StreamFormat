@@ -28,7 +28,7 @@
 
 #include <sf/utility.hpp>
 
-#if defined(SF_CXX17) || _MSC_VER >= 1910
+#if defined(SF_CXX11)
 
 #include <functional>
 #include <iostream>
@@ -76,12 +76,12 @@ namespace sf
         using arg_list_t = typename arg<Stream>::list_type;
 
         template <io_state IOState, typename T, typename Stream>
-        SF_CONSTEXPR std::enable_if_t<IOState == input, Stream>& operate_arg_io(Stream& stream, T&& arg)
+        SF_CONSTEXPR typename std::enable_if<IOState == input, Stream>::type& operate_arg_io(Stream& stream, T&& arg)
         {
             return stream >> arg;
         }
         template <io_state IOState, typename T, typename Stream>
-        SF_CONSTEXPR std::enable_if_t<IOState == output, Stream>& operate_arg_io(Stream& stream, T&& arg)
+        SF_CONSTEXPR typename std::enable_if<IOState == output, Stream>::type& operate_arg_io(Stream& stream, T&& arg)
         {
             return stream << arg;
         }
@@ -100,7 +100,8 @@ namespace sf
             arg_io(T&& arg) : arg(std::forward<T>(arg)) {}
             SF_CONSTEXPR stream_type& operator()(stream_type& stream)
             {
-                return operate_arg_io<IOState, T, stream_type>(stream, static_cast<T&&>(arg));
+                //G++ will error with static_cast and -std=c++11.
+                return operate_arg_io<IOState, T, stream_type>(stream, (T &&) arg);
             }
         };
 
@@ -121,7 +122,7 @@ namespace sf
         {
         public:
             typedef stream_t<input, Char, Traits> stream_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef basic_string_view<Char, Traits> string_view_type;
 
         private:
             string_view_type arg;
@@ -171,7 +172,7 @@ namespace sf
         {
         public:
             typedef stream_t<output, Char, Traits> stream_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef basic_string_view<Char, Traits> string_view_type;
             typedef typename string_view_type::size_type int_type;
 
         private:
@@ -183,7 +184,7 @@ namespace sf
             {
                 if (!arg.empty())
                 {
-                    os.write(arg.data(), arg.size());
+                    os.write(arg.data(), arg.length());
                 }
                 return os;
             }
@@ -238,7 +239,7 @@ namespace sf
         {
         public:
             typedef stream_t<IOState, Char, Traits> stream_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef basic_string_view<Char, Traits> string_view_type;
 
         private:
             Char fmtc;
@@ -327,7 +328,7 @@ namespace sf
         public:
             typedef stream_t<IOState, Char, Traits> stream_type;
             typedef arg_t<stream_type> arg_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef basic_string_view<Char, Traits> string_view_type;
             typedef typename string_view_type::size_type int_type;
 
         private:
@@ -371,7 +372,7 @@ namespace sf
             typedef stream_t<IOState, Char, Traits> stream_type;
             typedef arg_t<stream_type> arg_type;
             typedef arg_list_t<stream_type> arg_list_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
+            typedef basic_string_view<Char, Traits> string_view_type;
             typedef typename string_view_type::size_type int_type;
             typedef string_view_io<IOState, Char, Traits> string_view_io_type;
 
@@ -428,8 +429,12 @@ namespace sf
                     }
                     else
                     {
-                        index = fmt.find(right_brace<Char>(), offset);
-                        if (index == string_view_type::npos)
+                        for (index = offset; index < length; index++)
+                        {
+                            if (Traits::eq(fmt[index], right_brace<Char>()))
+                                break;
+                        }
+                        if (index == length)
                         {
                             throw std::logic_error("No \"}\" was found after \"{\".");
                         }
@@ -470,7 +475,7 @@ namespace sf
         };
 
         template <io_state IOState, typename Char, typename Traits, typename... Args>
-        SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
+        SF_CONSTEXPR stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
             return format_string_view<IOState, Char, Traits>(fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... })(stream);
         }
@@ -484,81 +489,81 @@ namespace sf
 
     //template IO
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    SF_CONSTEXPR std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    SF_CONSTEXPR std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
     }
 
     //char IO
     template <typename... Args>
-    SF_CONSTEXPR std::istream& scan(std::istream& stream, std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::istream& scan(std::istream& stream, string_view fmt, Args&&... args)
     {
         return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::istream& scan(std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::istream& scan(string_view fmt, Args&&... args)
     {
         return scan(std::cin, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::ostream& print(std::ostream& stream, std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::ostream& print(std::ostream& stream, string_view fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::ostream& print(std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::ostream& print(string_view fmt, Args&&... args)
     {
         return print(std::cout, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::ostream& println(std::ostream& stream, std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::ostream& println(std::ostream& stream, string_view fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
     }
     template <typename... Args>
-    SF_CONSTEXPR std::ostream& println(std::string_view fmt, Args&&... args)
+    SF_CONSTEXPR std::ostream& println(string_view fmt, Args&&... args)
     {
         return println(std::cout, fmt, std::forward<Args>(args)...);
     }
 
     //wchar_t IO
     template <typename... Args>
-    SF_CONSTEXPR std::wistream& scan(std::wistream& stream, std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wistream& scan(std::wistream& stream, wstring_view fmt, Args&&... args)
     {
         return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wistream& scan(std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wistream& scan(wstring_view fmt, Args&&... args)
     {
         return scan(std::wcin, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wostream& print(std::wostream& stream, std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wostream& print(std::wostream& stream, wstring_view fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wostream& print(std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wostream& print(wstring_view fmt, Args&&... args)
     {
         return print(std::wcout, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wostream& println(std::wostream& stream, std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wostream& println(std::wostream& stream, wstring_view fmt, Args&&... args)
     {
         return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
     }
     template <typename... Args>
-    SF_CONSTEXPR std::wostream& println(std::wstring_view fmt, Args&&... args)
+    SF_CONSTEXPR std::wostream& println(wstring_view fmt, Args&&... args)
     {
         return println(std::wcout, fmt, std::forward<Args>(args)...);
     }
@@ -630,6 +635,6 @@ namespace sf
     }
 #endif // !SF_FORCE_WIDE_IO
 } // namespace sf
-#endif // SF_CXX17
+#endif // SF_CXX11
 
 #endif // !SF_FORMAT_HPP
