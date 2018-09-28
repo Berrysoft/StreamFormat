@@ -109,25 +109,25 @@ namespace sf
         SF_CHAR_TEMPLATE(zero, '0')
         SF_CHAR_TEMPLATE(nine, '9')
 
-#ifndef SF_USE_NO_NOEXCEPT
+#ifndef SF_USE_NO_EXCEPT
         template <typename Char>
         SF_CONSTEXPR bool isdigit(Char c)
         {
             return c >= zero<Char>() && c <= nine<Char>();
         }
-#endif // !SF_USE_NO_NOEXCEPT
+#endif // !SF_USE_NO_EXCEPT
         template <typename Int, typename Char, typename Traits>
         SF_CONSTEXPR Int stou(const basic_string_view<Char, Traits>& str)
         {
             Int result(0);
             for (const Char& c : str)
             {
-#ifndef SF_USE_NO_NOEXCEPT
+#ifndef SF_USE_NO_EXCEPT
                 if (!isdigit(c))
                 {
                     throw std::invalid_argument("Not digit.");
                 }
-#endif // !SF_USE_NO_NOEXCEPT
+#endif // !SF_USE_NO_EXCEPT
                 result *= 10;
                 result += c - zero<Char>();
             }
@@ -314,12 +314,12 @@ namespace sf
                         {
                             oldf |= (it->second)(stream, fmtf);
                         }
-#ifndef SF_USE_NO_NOEXCEPT
+#ifndef SF_USE_NO_EXCEPT
                         else
                         {
                             throw std::logic_error("Invalid format character.");
                         }
-#endif // !SF_USE_NO_NOEXCEPT
+#endif // !SF_USE_NO_EXCEPT
                         offset = index + 1;
                     }
                 }
@@ -378,12 +378,12 @@ namespace sf
                                 index++;
                                 if (!(index < length && Traits::eq(fmt[index], right_brace<Char>())))
                                 {
-#ifndef SF_USE_NO_NOEXCEPT
+#ifndef SF_USE_NO_EXCEPT
                                     throw std::logic_error("No \"{\" matches \"}\".");
 #else
                                     index--;
                                     continue;
-#endif // !SF_USE_NO_NOEXCEPT
+#endif // !SF_USE_NO_EXCEPT
                                 }
                             }
                             else
@@ -407,12 +407,12 @@ namespace sf
                         }
                         if (index == length)
                         {
-#ifndef SF_USE_NO_NOEXCEPT
+#ifndef SF_USE_NO_EXCEPT
                             throw std::logic_error("No \"}\" was found after \"{\".");
 #else
                             string_view_io_type(fmt.substr(offset - 1))(stream);
                             offset = index + 1;
-#endif // !SF_USE_NO_NOEXCEPT
+#endif // !SF_USE_NO_EXCEPT
                         }
                         else
                         {

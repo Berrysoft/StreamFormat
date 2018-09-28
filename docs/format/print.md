@@ -43,18 +43,17 @@ You can specify the format style of the argument, with the syntax `{<index>:<fla
 
 |Flag|Summary|
 |-|-|
-|b, B|boolalpha|
-|d, D|dec, fix to length `number` with '0'|
-|e, E|scientific|
-|f, F|fixed|
-|g, G|general(nop)|
-|i, I|internal|
-|l, L|left, fix to length `number` with space|
-|o, O|oct, fix to length `number` with '0'|
-|r, R|right, fix to length `number` with space|
-|x, X|hex, fix to length `number` with '0'|
-
-All the uppercase flag will add an uppercase style.
+|b|boolalpha|
+|d|dec, fix to length `number` with '0'|
+|e|scientific|
+|f|fixed|
+|g|general(nop)|
+|i|internal|
+|l|left, fix to length `number` with space|
+|o|oct, fix to length `number` with '0'|
+|r|right, fix to length `number` with space|
+|u|uppercase|
+|x|hex, fix to length `number` with '0'|
 
 ``` c++
 // 6
