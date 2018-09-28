@@ -47,7 +47,7 @@
 #define SF_CONSTEXPR_DECL constexpr
 #else
 #define SF_CONSTEXPR inline
-#define SF_CONSTEXPR_DECL
+#define SF_CONSTEXPR_DECL const
 #endif // SF_CXX14
 #endif // !SF_CONSTEXPR
 
