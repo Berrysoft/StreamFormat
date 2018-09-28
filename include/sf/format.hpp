@@ -33,7 +33,7 @@
 #include <functional>
 #include <iostream>
 #include <map>
-#include <sf/stoi.hpp>
+#include <sf/string_view.hpp>
 #include <vector>
 
 namespace sf
@@ -105,6 +105,34 @@ namespace sf
                 return operate_arg_io<IOState, T, stream_type>(stream, (T &&) arg);
             }
         };
+
+        SF_CHAR_TEMPLATE(zero, '0')
+        SF_CHAR_TEMPLATE(nine, '9')
+
+#ifndef SF_USE_NO_NOEXCEPT
+        template <typename Char>
+        SF_CONSTEXPR bool isdigit(Char c)
+        {
+            return c >= zero<Char>() && c <= nine<Char>();
+        }
+#endif // !SF_USE_NO_NOEXCEPT
+        template <typename Int, typename Char, typename Traits>
+        SF_CONSTEXPR Int stou(const basic_string_view<Char, Traits>& str)
+        {
+            Int result(0);
+            for (const Char& c : str)
+            {
+#ifndef SF_USE_NO_NOEXCEPT
+                if (!isdigit(c))
+                {
+                    throw std::invalid_argument("Not digit.");
+                }
+#endif // !SF_USE_NO_NOEXCEPT
+                result *= 10;
+                result += c - zero<Char>();
+            }
+            return result;
+        }
 
         SF_CHAR_TEMPLATE(space, ' ')
         SF_CHAR_TEMPLATE(tab, '\t')
@@ -279,17 +307,19 @@ namespace sf
                         int_type len = index - offset - 1;
                         if (len > 0)
                         {
-                            fmtf = stoi(fmts.substr(offset + 1, len));
+                            fmtf = stou<int, Char, Traits>(fmts.substr(offset + 1, len));
                         }
                         auto it = fsetf_type::methods.find(fmtc);
                         if (it != fsetf_type::methods.end())
                         {
                             oldf |= (it->second)(stream, fmtf);
                         }
+#ifndef SF_USE_NO_NOEXCEPT
                         else
                         {
                             throw std::logic_error("Invalid format character.");
                         }
+#endif // !SF_USE_NO_NOEXCEPT
                         offset = index + 1;
                     }
                 }
@@ -348,7 +378,12 @@ namespace sf
                                 index++;
                                 if (!(index < length && Traits::eq(fmt[index], right_brace<Char>())))
                                 {
+#ifndef SF_USE_NO_NOEXCEPT
                                     throw std::logic_error("No \"{\" matches \"}\".");
+#else
+                                    index--;
+                                    continue;
+#endif // !SF_USE_NO_NOEXCEPT
                                 }
                             }
                             else
@@ -372,7 +407,12 @@ namespace sf
                         }
                         if (index == length)
                         {
+#ifndef SF_USE_NO_NOEXCEPT
                             throw std::logic_error("No \"}\" was found after \"{\".");
+#else
+                            string_view_io_type(fmt.substr(offset - 1))(stream);
+                            offset = index + 1;
+#endif // !SF_USE_NO_NOEXCEPT
                         }
                         else
                         {
@@ -387,7 +427,7 @@ namespace sf
                             }
                             if (ci > offset)
                             {
-                                arg_index = stoull(fmt.substr(offset, ci - offset));
+                                arg_index = stou<std::size_t, Char, Traits>(fmt.substr(offset, ci - offset));
                             }
                             if (arg_index >= args.size())
                             {
