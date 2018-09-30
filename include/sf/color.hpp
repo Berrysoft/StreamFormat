@@ -167,9 +167,9 @@ namespace sf
             SF_CONSTEXPR color_arg() : fore(user_default, false), back(user_default, true), sgr(normal) {}
             SF_CONSTEXPR color_arg(T&& arg, color_type fore, color_type back, sgr_chars sgr) : arg(arg), fore(fore, false), back(back, true), sgr(sgr) {}
             template <typename Char, typename Traits>
-            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
+            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg& arg)
             {
-                return stream << make_ansi_control(static_cast<int>(arg.sgr), arg.fore, arg.back) << arg.arg << make_ansi_control();
+                return stream << make_sgr_control<Char>(static_cast<int>(arg.sgr), arg.fore, arg.back) << arg.arg << make_sgr_control<Char>();
             }
         };
     } // namespace internal

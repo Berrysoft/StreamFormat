@@ -40,7 +40,6 @@ namespace sf
         SF_CHAR_TEMPLATE(esc, '\033')
         SF_CHAR_TEMPLATE(sqr_bra, '[')
         SF_CHAR_TEMPLATE(smcolon, ';')
-        SF_CHAR_TEMPLATE(ansi_end, 'm')
 
         template <typename Char, typename Traits>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream)
@@ -95,36 +94,116 @@ namespace sf
         template <typename Char, typename Traits, typename... Args>
         SF_CONSTEXPR std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args)
         {
-            return join_args_helper(stream << esc<Char>() << sqr_bra<Char>(), args, make_index_sequence<sizeof...(Args)>()) << ansi_end<Char>();
+            return join_args_helper(stream << esc<Char>() << sqr_bra<Char>(), args, make_index_sequence<sizeof...(Args)>());
         }
 
         //Write Console Virtual Terminal Sequences (ANSI Control Characters) to a stream.
-        template <typename... Args>
+        template <typename C, typename... Args>
         class ansi_control
         {
         private:
+            C endc;
             std::tuple<Args...> args;
 
         public:
-            ansi_control(Args&&... args) : args(std::forward<Args>(args)...) {}
-            SF_CONSTEXPR ansi_control(ansi_control<Args...>&& arg) : args(std::move(arg.args)) {}
-            ansi_control<Args...>& operator=(ansi_control<Args...>&& arg)
-            {
-                args = std::move(arg.args);
-                return *this;
-            }
+            ansi_control(C endc, Args&&... args) : endc(endc), args(std::forward<Args>(args)...) {}
             template <typename Char, typename Traits = std::char_traits<Char>>
             friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl)
             {
-                return internal::write_ansi(stream, ctrl.args);
+                return write_ansi(stream, ctrl.args) << ctrl.endc;
             }
         };
+
+        template <typename Char, typename... Args>
+        SF_CONSTEXPR ansi_control<Char, Args...> make_ansi_control(Char endc, Args&&... args)
+        {
+            return ansi_control<Char, Args...>(endc, std::forward<Args>(args)...);
+        }
+
+        SF_CHAR_TEMPLATE(cuu_end, 'A')
+        SF_CHAR_TEMPLATE(cud_end, 'B')
+        SF_CHAR_TEMPLATE(cuf_end, 'C')
+        SF_CHAR_TEMPLATE(cub_end, 'D')
+        SF_CHAR_TEMPLATE(cnl_end, 'E')
+        SF_CHAR_TEMPLATE(cpl_end, 'F')
+        SF_CHAR_TEMPLATE(cha_end, 'G')
+        SF_CHAR_TEMPLATE(cup_end, 'H')
+        SF_CHAR_TEMPLATE(ed_end, 'J')
+        SF_CHAR_TEMPLATE(el_end, 'K')
+        SF_CHAR_TEMPLATE(su_end, 'S')
+        SF_CHAR_TEMPLATE(sd_end, 'T')
+        SF_CHAR_TEMPLATE(sgr_end, 'm')
+        SF_CHAR_TEMPLATE(dsr_end, 'n')
+        SF_CHAR_TEMPLATE(scp_end, 's')
+        SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-    template <typename... Args>
-    SF_CONSTEXPR internal::ansi_control<Args...> make_ansi_control(Args&&... args)
+#define SF_MAKE_CURSOR_MOVE(name, charname)                                \
+    template <typename Char>                                               \
+    SF_CONSTEXPR internal::ansi_control<Char, int&> name(int n = 1)        \
+    {                                                                      \
+        return internal::make_ansi_control(internal::charname<Char>(), n); \
+    }
+
+    SF_MAKE_CURSOR_MOVE(make_cursor_up, cuu_end)
+    SF_MAKE_CURSOR_MOVE(make_cursor_down, cud_end)
+    SF_MAKE_CURSOR_MOVE(make_cursor_forward, cuf_end)
+    SF_MAKE_CURSOR_MOVE(make_cursor_back, cub_end)
+
+    SF_MAKE_CURSOR_MOVE(make_cursor_next_line, cnl_end)
+    SF_MAKE_CURSOR_MOVE(make_cursor_pre_line, cpl_end)
+    SF_MAKE_CURSOR_MOVE(make_cursor_abs_line, cha_end)
+
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char, int&, int&> make_cursor_set_pos(int line = 1, int index = 1)
     {
-        return internal::ansi_control<Args...>(std::forward<Args>(args)...);
+        return internal::make_ansi_control(internal::cup_end<Char>(), line, index);
+    }
+
+    enum erase_opt
+    {
+        erase_to_end,
+        erase_to_start,
+        erase_all,
+        erase_all_buffer // Only apply to ED.
+    };
+
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char, int> make_erase_screen(erase_opt opt)
+    {
+        return internal::make_ansi_control(internal::ed_end<Char>(), static_cast<int>(opt));
+    }
+
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char, int> make_erase_line(erase_opt opt)
+    {
+        return internal::make_ansi_control(internal::el_end<Char>(), static_cast<int>(opt));
+    }
+
+    SF_MAKE_CURSOR_MOVE(make_scroll_up, su_end)
+    SF_MAKE_CURSOR_MOVE(make_scroll_down, sd_end)
+
+    template <typename Char, typename... Args>
+    SF_CONSTEXPR internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args)
+    {
+        return internal::make_ansi_control(internal::sgr_end<Char>(), std::forward<Args>(args)...);
+    }
+
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char, int> make_cursor_pos_report()
+    {
+        return internal::make_ansi_control(internal::dsr_end<Char>(), 6);
+    }
+
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char> make_cursor_save()
+    {
+        return internal::make_ansi_control(internal::scp_end<Char>());
+    }
+    template <typename Char>
+    SF_CONSTEXPR internal::ansi_control<Char> make_cursor_restore()
+    {
+        return internal::make_ansi_control(internal::rcp_end<Char>());
     }
 } // namespace sf
 
