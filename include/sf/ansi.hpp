@@ -138,11 +138,11 @@ namespace sf
         SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-#define SF_MAKE_CURSOR_MOVE(name, charname)                                \
-    template <typename Char>                                               \
-    SF_CONSTEXPR internal::ansi_control<Char, int&> name(int n = 1)        \
-    {                                                                      \
-        return internal::make_ansi_control(internal::charname<Char>(), n); \
+#define SF_MAKE_CURSOR_MOVE(name, charname)                                           \
+    template <typename Char>                                                          \
+    SF_CONSTEXPR internal::ansi_control<Char, int> name(int n = 1)                    \
+    {                                                                                 \
+        return internal::make_ansi_control(internal::charname<Char>(), std::move(n)); \
     }
 
     SF_MAKE_CURSOR_MOVE(make_cursor_up, cuu_end)
@@ -155,9 +155,9 @@ namespace sf
     SF_MAKE_CURSOR_MOVE(make_cursor_abs_line, cha_end)
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, int&, int&> make_cursor_set_pos(int line = 1, int index = 1)
+    SF_CONSTEXPR internal::ansi_control<Char, int, int> make_cursor_set_pos(int line = 1, int index = 1)
     {
-        return internal::make_ansi_control(internal::cup_end<Char>(), line, index);
+        return internal::make_ansi_control(internal::cup_end<Char>(), std::move(line), std::move(index));
     }
 
     enum erase_opt
