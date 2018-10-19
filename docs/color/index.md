@@ -3,14 +3,14 @@ This header contains classes and functions to output colorfully.
 
 |Class|Use|
 |-|-|
-|`sgr_chars`|SGR codes.|
-|`preset_color`|Preset colors.|
-|`rgb_color`|A struct contains 24-bit color info.|
+|[`sgr_chars`](./make_color_arg.md)|SGR codes.|
+|[`preset_color`](./make_color_arg.md)|Preset colors.|
+|[`rgb_color`](./make_color_arg.md)|A struct contains 24-bit color info.|
 
 |Type define|Use|
 |-|-|
-|`color_type`|The type of a color param.|
+|[`color_type`](./make_color_arg.md)|The type of a color param.|
 
 |Function|Use|
 |-|-|
-|`make_color_arg`|Wrap an argument with color.|
+|[`make_color_arg`](./make_color_arg.md)|Wrap an argument with color.|
