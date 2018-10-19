@@ -138,21 +138,21 @@ namespace sf
         SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-#define SF_MAKE_CURSOR_MOVE(name, charname)                                           \
+#define SF_MAKE_MOVE(name, charname)                                           \
     template <typename Char>                                                          \
     SF_CONSTEXPR internal::ansi_control<Char, int> name(int n = 1)                    \
     {                                                                                 \
         return internal::make_ansi_control(internal::charname<Char>(), std::move(n)); \
     }
 
-    SF_MAKE_CURSOR_MOVE(make_cursor_up, cuu_end)
-    SF_MAKE_CURSOR_MOVE(make_cursor_down, cud_end)
-    SF_MAKE_CURSOR_MOVE(make_cursor_forward, cuf_end)
-    SF_MAKE_CURSOR_MOVE(make_cursor_back, cub_end)
+    SF_MAKE_MOVE(make_cursor_upward, cuu_end)
+    SF_MAKE_MOVE(make_cursor_downward, cud_end)
+    SF_MAKE_MOVE(make_cursor_forward, cuf_end)
+    SF_MAKE_MOVE(make_cursor_backward, cub_end)
 
-    SF_MAKE_CURSOR_MOVE(make_cursor_next_line, cnl_end)
-    SF_MAKE_CURSOR_MOVE(make_cursor_pre_line, cpl_end)
-    SF_MAKE_CURSOR_MOVE(make_cursor_abs_line, cha_end)
+    SF_MAKE_MOVE(make_cursor_next_line, cnl_end)
+    SF_MAKE_MOVE(make_cursor_pre_line, cpl_end)
+    SF_MAKE_MOVE(make_cursor_abs_line, cha_end)
 
     template <typename Char>
     SF_CONSTEXPR internal::ansi_control<Char, int, int> make_cursor_set_pos(int line = 1, int index = 1)
@@ -180,8 +180,8 @@ namespace sf
         return internal::make_ansi_control(internal::el_end<Char>(), static_cast<int>(opt));
     }
 
-    SF_MAKE_CURSOR_MOVE(make_scroll_up, su_end)
-    SF_MAKE_CURSOR_MOVE(make_scroll_down, sd_end)
+    SF_MAKE_MOVE(make_scroll_up, su_end)
+    SF_MAKE_MOVE(make_scroll_down, sd_end)
 
     template <typename Char, typename... Args>
     SF_CONSTEXPR internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args)
