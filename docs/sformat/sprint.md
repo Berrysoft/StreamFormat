@@ -1,5 +1,5 @@
 # `sf::sprint`
-Defined in [`<sf/sformat.hpp>`](./index.md)
+Defined in [`<sf/sformat.hpp>`](./index.md).
 ``` c++
 // 1
 template <

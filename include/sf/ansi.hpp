@@ -138,9 +138,9 @@ namespace sf
         SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-#define SF_MAKE_MOVE(name, charname)                                           \
+#define SF_MAKE_MOVE(name, charname)                                                  \
     template <typename Char>                                                          \
-    SF_CONSTEXPR internal::ansi_control<Char, int> name(int n = 1)                    \
+    SF_CONSTEXPR internal::ansi_control<Char, std::size_t> name(std::size_t n = 1)    \
     {                                                                                 \
         return internal::make_ansi_control(internal::charname<Char>(), std::move(n)); \
     }
@@ -155,7 +155,7 @@ namespace sf
     SF_MAKE_MOVE(make_cursor_abs_line, cha_end)
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, int, int> make_cursor_set_pos(int line = 1, int index = 1)
+    SF_CONSTEXPR internal::ansi_control<Char, std::size_t, std::size_t> make_cursor_set_pos(std::size_t line = 1, std::size_t index = 1)
     {
         return internal::make_ansi_control(internal::cup_end<Char>(), std::move(line), std::move(index));
     }

@@ -1,5 +1,5 @@
 # `sf::println`
-Defined in [`<sf/format.hpp>`](./index.md)
+Defined in [`<sf/format.hpp>`](./index.md).
 ``` c++
 // 1
 template <
