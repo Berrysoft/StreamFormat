@@ -1,6 +1,8 @@
 # StreamFormat
 一个以标准输入输出流为基础的C++格式化输入输出库。
-## 使用方法
+## 文档
+全部文档[见此](./docs/index.md)。
+## 简要使用方法
 ### 输出
 `print`函数用起来像.NET中的`Console.Write`：
 ``` c++

@@ -1,6 +1,8 @@
 # StreamFormat
 A C++ format IO library, based on standard streams.
-## Usage
+## Documents
+For whole documents, see [here](./docs/index.md).
+## Brief Usage
 ### Print
 The usage of `print` function is like .NET `Console.Write`:
 ``` c++
