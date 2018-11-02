@@ -7,7 +7,8 @@ int main()
 {
     ostringstream oss;
     print(oss, "Test\n");
-    print(oss, "{0}", '\n');
+    char c = '\n';
+    print(oss, "{0}", c);
     println(oss, "0x{:x8,u}", 4276215469);
     print(oss, "{}\n", "Hello, world!");
     print(oss, "{0:b,l8}", true);

@@ -101,8 +101,7 @@ namespace sf
             arg_io(T&& arg) : arg(std::forward<T>(arg)) {}
             SF_CONSTEXPR stream_type& operator()(stream_type& stream)
             {
-                //G++ will error with static_cast and -std=c++11.
-                return operate_arg_io<IOState, T, stream_type>(stream, (T &&) arg);
+                return operate_arg_io<IOState, T, stream_type>(stream, reinterpret_cast<T&&>(arg));
             }
         };
 
