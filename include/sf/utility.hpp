@@ -67,6 +67,10 @@
 #endif // SF_CXX11
 #endif // !SF_NULLPTR
 
+#if defined(_MSC_VER) && defined(_UNICODE) && !defined(SF_FORCE_WIDE_IO)
+#define SF_FORCE_WIDE_IO 1
+#endif // !SF_FORCE_WIDE_IO
+
 #ifndef SF_CHAR_TEMPLATE
 #define SF_CHAR_TEMPLATE(name, value)        \
     template <typename Char>                 \

@@ -566,7 +566,7 @@ namespace sf
     {
         return print<Char, Traits>(stream, std::endl<Char, Traits>);
     }
-#ifndef SF_FORCE_WIDE_IO
+#if !SF_FORCE_WIDE_IO
     //char IO
     template <typename T>
     SF_CONSTEXPR std::istream& scan(T&& arg)
