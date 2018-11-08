@@ -58,7 +58,7 @@ namespace sf
         SF_CONSTEXPR basic_string_view(const_pointer s, size_type count) : m_start(s), m_size(count) {}
         SF_CONSTEXPR basic_string_view(const_pointer s) : m_start(s), m_size(Traits::length(s)) {}
         template <typename Allocator = std::allocator<Char>>
-        SF_CONSTEXPR basic_string_view(const std::basic_string<Char, Traits, Allocator>& s) : m_start(s), m_size(s.length())
+        SF_CONSTEXPR basic_string_view(const std::basic_string<Char, Traits, Allocator>& s) : m_start(s.data()), m_size(s.length())
         {
         }
 
