@@ -4,29 +4,29 @@ Defined in [`<sf/format.hpp>`](./index.md).
 // 1
 template <
     typename... Args
-> constexpr std::ostream& print(std::string_view fmt, Args&&... args);
+> constexpr std::ostream& print(sf::string_view fmt, Args&&... args);
 
 // 2
 template <
     typename... Args
-> constexpr std::ostream& print(std::ostream& stream, std::string_view fmt, Args&&... args);
+> constexpr std::ostream& print(std::ostream& stream, sf::string_view fmt, Args&&... args);
 
 // 3
 template <
     typename... Args
-> constexpr std::wostream& print(std::wstring_view fmt, Args&&... args);
+> constexpr std::wostream& print(sf::wstring_view fmt, Args&&... args);
 
 // 4
 template <
     typename... Args
-> constexpr std::wostream& print(std::wostream& stream, std::wstring_view fmt, Args&&... args);
+> constexpr std::wostream& print(std::wostream& stream, sf::wstring_view fmt, Args&&... args);
 
 // 5
 template <
     typename Char, 
     typename Traits = std::char_traits<Char>, 
     typename... Args
-> constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args);
+> constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, sf::basic_string_view<Char, Traits> fmt, Args&&... args);
 ```
 
 |Param|Summary|

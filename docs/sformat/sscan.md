@@ -4,12 +4,12 @@ Defined in [`<sf/sformat.hpp>`](./index.md).
 // 1
 template <
     typename... Args
-> constexpr std::streampos sscan(const std::string& str, std::string_view fmt, Args&&... args);
+> constexpr std::streampos sscan(const std::string& str, sf::string_view fmt, Args&&... args);
 
 // 2
 template <
     typename... Args
-> constexpr std::wstreampos sscan(const std::wstring& str, std::wstring_view fmt, Args&&... args);
+> constexpr std::wstreampos sscan(const std::wstring& str, sf::wstring_view fmt, Args&&... args);
 
 // 3
 template <
@@ -17,7 +17,7 @@ template <
     typename Traits = std::char_traits<Char>, 
     typename Allocator = std::allocator<Char>, 
     typename... Args
-> constexpr typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, std::basic_string_view<Char, Traits> fmt, Args&&... args);
+> constexpr typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, sf::basic_string_view<Char, Traits> fmt, Args&&... args);
 ```
 
 |Param|Summary|

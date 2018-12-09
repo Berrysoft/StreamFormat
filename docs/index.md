@@ -3,10 +3,11 @@ StreamFormat is a template library, thus it contains only headers. Here are all 
 
 |Header|Contents|
 |-|-|
-|[`<sf/format.hpp>`](./format/index.md)|IO functions.|
-|[`<sf/sformat.hpp>`](./sformat/index.md)|Format IO functions for `std::basic_string`.|
 |[`<sf/ansi.hpp>`](./ansi/index.md)|A function to write ANSI escape code.|
 |[`<sf/color.hpp>`](./color/index.md)|Classes and functions to output colorfully.|
+|[`<sf/format.hpp>`](./format/index.md)|IO functions.|
+|[`<sf/sformat.hpp>`](./sformat/index.md)|Format IO functions for `std::basic_string`.|
+|[`<sf/string_view.hpp>`](./string_view/index.md)|A port of `std::basic_string_view` to C++11/14.|
 
 ## Global control
 |Macro|Summery|
