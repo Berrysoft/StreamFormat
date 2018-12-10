@@ -14,7 +14,8 @@ int main()
     print(oss, "{0:b,l8}", true);
     println<char>(oss);
     oss << sprint("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));
-    if (oss.str() == "Test\n\n0xFEE1DEAD\nHello, world!\ntrue    \n123{321}123\n")
+    oss << sprint(123.456) << endl;
+    if (oss.str() == "Test\n\n0xFEE1DEAD\nHello, world!\ntrue    \n123{321}123\n123.456\n")
     {
         println("Success.");
     }

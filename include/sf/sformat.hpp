@@ -47,8 +47,8 @@ namespace sf
         template <typename Char, typename Traits, typename Allocator, typename T>
         SF_CONSTEXPR typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, T&& arg)
         {
-            std::basic_istringstream<Char,Traits,Allocator) iss(str);
-            format<input>(iss, std::forward<T>(arg));
+            std::basic_istringstream<Char, Traits, Allocator> iss(str);
+            format<input, Char, Traits, T>(iss, std::forward<T>(arg));
             return iss.tellg();
         }
 
@@ -63,7 +63,7 @@ namespace sf
         SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(T&& arg)
         {
             std::basic_ostringstream<Char, Traits, Allocator> oss;
-            format<output>(oss, std::forward<T>(arg));
+            format<output, Char, Traits, T>(oss, std::forward<T>(arg));
             return oss.str();
         }
     } // namespace internal

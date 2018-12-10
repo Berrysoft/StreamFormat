@@ -12,7 +12,7 @@ int main(int argc, char** argv)
         auto pos = sscan(argv[1], "{}{1}", a, b);
         if (pos != decltype(pos)(-1))
         {
-            result = sprint(argv[1] + pos);
+            sscan(argv[1] + pos, result);
         }
         else
         {

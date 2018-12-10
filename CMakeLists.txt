@@ -26,7 +26,7 @@ set_tests_properties(test_print PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
 add_executable(scan test/scan.cpp)
 add_test(test_scan_1 scan "1 1" "1 + 1 = 2")
 set_tests_properties(test_scan_1 PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
-add_test(test_scan_2 scan "111 222 333" " 333")
+add_test(test_scan_2 scan "111 222 333" "333")
 set_tests_properties(test_scan_2 PROPERTIES PASS_REGULAR_EXPRESSION "Success.\n")
 
 add_executable(color test/color.cpp)
