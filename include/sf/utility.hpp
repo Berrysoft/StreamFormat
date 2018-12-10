@@ -26,15 +26,15 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#if !defined(SF_CXX11) && __cplusplus >= 201103L || _MSVC_LANG >= 201103L
+#if !defined(SF_CXX11) && (__cplusplus >= 201103L || _MSVC_LANG >= 201103L)
 #define SF_CXX11
 #endif // C++11
 
-#if !defined(SF_CXX14) && __cplusplus >= 201402L || _MSVC_LANG >= 201402L
+#if !defined(SF_CXX14) && (__cplusplus >= 201402L || _MSVC_LANG >= 201402L)
 #define SF_CXX14
 #endif // C++14
 
-#if !defined(SF_CXX17) && __cplusplus >= 201703L || _MSVC_LANG >= 201703L
+#if !defined(SF_CXX17) && (__cplusplus >= 201703L || _MSVC_LANG >= 201703L)
 #define SF_CXX17
 #endif // C++17
 

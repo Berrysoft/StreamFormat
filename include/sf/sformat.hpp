@@ -44,11 +44,26 @@ namespace sf
             format<input>(iss, fmt, std::forward<Args>(args)...);
             return iss.tellg();
         }
+        template <typename Char, typename Traits, typename Allocator, typename T>
+        SF_CONSTEXPR typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, T&& arg)
+        {
+            std::basic_istringstream<Char,Traits,Allocator) iss(str);
+            format<input>(iss, std::forward<T>(arg));
+            return iss.tellg();
+        }
+
         template <typename Char, typename Traits, typename Allocator, typename... Args>
         SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(const basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
             std::basic_ostringstream<Char, Traits, Allocator> oss;
             format<output>(oss, fmt, std::forward<Args>(args)...);
+            return oss.str();
+        }
+        template <typename Char, typename Traits, typename Allocator, typename T>
+        SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(T&& arg)
+        {
+            std::basic_ostringstream<Char, Traits, Allocator> oss;
+            format<output>(oss, std::forward<T>(arg));
             return oss.str();
         }
     } // namespace internal
@@ -96,6 +111,50 @@ namespace sf
     {
         return internal::sprint<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(fmt, std::forward<Args>(args)...);
     }
+
+    //Simple IO functions for convinence.
+
+    //template IO
+    template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename T>
+    SF_CONSTEXPR typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, T&& arg)
+    {
+        return internal::sscan<Char, Traits, Allocator, T>(str, std::forward<T>(arg));
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename T>
+    SF_CONSTEXPR std::basic_string<Char, Traits, Allocator> sprint(T&& arg)
+    {
+        return internal::sprint<Char, Traits, Allocator, T>(std::forward<T>(arg));
+    }
+
+#if !SF_FORCE_WIDE_IO
+    //char IO
+    template <typename T>
+    SF_CONSTEXPR auto sscan(const std::string& str, T&& arg)
+        -> decltype(internal::sscan<char, std::char_traits<char>, std::allocator<char>, T>(str, std::forward<T>(arg)))
+    {
+        return internal::sscan<char, std::char_traits<char>, std::allocator<char>, T>(str, std::forward<T>(arg));
+    }
+    template <typename T>
+    SF_CONSTEXPR auto sprint(T&& arg)
+        -> decltype(internal::sprint<char, std::char_traits<char>, std::allocator<char>, T>(std::forward<T>(arg)))
+    {
+        return internal::sprint<char, std::char_traits<char>, std::allocator<char>, T>(std::forward<T>(arg));
+    }
+#else
+    //wchar_t IO
+    template <typename T>
+    SF_CONSTEXPR auto sscan(const std::wstring& str, T&& arg)
+        -> decltype(internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>, T>(str, std::forward<T>(arg)))
+    {
+        return internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>, T>(str, std::forward<T>(arg));
+    }
+    template <typename T>
+    SF_CONSTEXPR auto sprint(T&& arg)
+        -> decltype(internal::sprint<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>, T>(std::forward<T>(arg)))
+    {
+        return internal::sprint<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>, T>(std::forward<T>(arg));
+    }
+#endif // !SF_FORCE_WIDE_IO
 } // namespace sf
 
 #endif // SF_CXX11
