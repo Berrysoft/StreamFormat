@@ -32,6 +32,7 @@
 #include <Windows.h>
 #else
 #include <sf/ansi.hpp>
+#include <variant>
 #endif // SF_WIN_NATIVE_COLOR
 
 namespace sf
@@ -98,33 +99,12 @@ namespace sf
         unsigned char g;
         unsigned char b;
         rgb_color() = default;
-        SF_CONSTEXPR rgb_color(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {}
+        constexpr rgb_color(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {}
     };
 
     namespace internal
     {
-        class color_type
-        {
-        private:
-            union {
-                preset_color pcolor;
-                unsigned char ccolor;
-                rgb_color rgbcolor;
-            };
-            std::size_t m_index;
-
-        public:
-            SF_CONSTEXPR std::size_t index() const SF_NOEXCEPT { return m_index; }
-            SF_CONSTEXPR preset_color get_preset_color() const { return pcolor; }
-            SF_CONSTEXPR unsigned char get_char_color() const { return ccolor; }
-            SF_CONSTEXPR rgb_color get_rgb_color() const { return rgbcolor; }
-
-            SF_CONSTEXPR color_type() SF_NOEXCEPT : pcolor(user_default), m_index(0) {}
-            SF_CONSTEXPR color_type(const color_type&) SF_NOEXCEPT = default;
-            SF_CONSTEXPR color_type(preset_color value) : pcolor(value), m_index(0) {}
-            SF_CONSTEXPR color_type(unsigned char value) : ccolor(value), m_index(1) {}
-            SF_CONSTEXPR color_type(rgb_color value) : rgbcolor(value), m_index(2) {}
-        };
+        using color_type = std::variant<preset_color, std::byte, rgb_color>;
         class color
         {
         private:
@@ -135,18 +115,18 @@ namespace sf
             color() = default;
             color(color_type value, bool isback) : value(value), isback(isback) {}
             template <typename Char, typename Traits>
-            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color& c)
+            friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color& c)
             {
                 switch (c.value.index())
                 {
                 case 0: //preset_color
-                    stream << (static_cast<int>(c.value.get_preset_color()) + (c.isback ? 10 : 0));
+                    stream << (static_cast<int>(std::get<preset_color>(c.value)) + (c.isback ? 10 : 0));
                     break;
                 case 1: //unsigned char
-                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(c.value.get_char_color()));
+                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(std::get<std::byte>(c.value)));
                     break;
                 case 2: //rgb_color
-                    rgb_color rgb = c.value.get_rgb_color();
+                    rgb_color rgb = std::get<rgb_color>(c.value);
                     join_args(stream, static_cast<int>(c.isback ? background : foreground), 2, static_cast<int>(rgb.r), static_cast<int>(rgb.g), static_cast<int>(rgb.b));
                     break;
                 }
@@ -164,10 +144,10 @@ namespace sf
             sgr_chars sgr;
 
         public:
-            SF_CONSTEXPR color_arg() : fore(user_default, false), back(user_default, true), sgr(normal) {}
-            SF_CONSTEXPR color_arg(T&& arg, color_type fore, color_type back, sgr_chars sgr) : arg(arg), fore(fore, false), back(back, true), sgr(sgr) {}
+            constexpr color_arg() : fore(user_default, false), back(user_default, true), sgr(normal) {}
+            constexpr color_arg(T&& arg, color_type fore, color_type back, sgr_chars sgr) : arg(arg), fore(fore, false), back(back, true), sgr(sgr) {}
             template <typename Char, typename Traits>
-            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg& arg)
+            friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg& arg)
             {
                 return stream << make_sgr_control<Char>(static_cast<int>(arg.sgr), arg.fore, arg.back) << arg.arg << make_sgr_control<Char>();
             }
@@ -217,10 +197,10 @@ namespace sf
             sgr_chars sgr;
 
         public:
-            SF_CONSTEXPR color_arg() : fore(user_default), back(user_default), sgr(normal) {}
-            SF_CONSTEXPR color_arg(T&& arg, preset_color fore, preset_color back, sgr_chars sgr) : arg(arg), fore(fore), back(back), sgr(sgr) {}
+            constexpr color_arg() : fore(user_default), back(user_default), sgr(normal) {}
+            constexpr color_arg(T&& arg, preset_color fore, preset_color back, sgr_chars sgr) : arg(arg), fore(fore), back(back), sgr(sgr) {}
             template <typename Char, typename Traits>
-            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
+            friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
             {
                 HANDLE hc = GetStdHandle(STD_OUTPUT_HANDLE);
                 CONSOLE_SCREEN_BUFFER_INFO info;
@@ -243,12 +223,12 @@ namespace sf
 #endif // !SF_WIN_NATIVE_COLOR
 
     template <typename T>
-    SF_CONSTEXPR internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal)
+    constexpr internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal)
     {
         return internal::color_arg<T>(std::forward<T>(arg), fore, back, sgr);
     }
     template <typename T>
-    SF_CONSTEXPR internal::color_arg<T> make_color_arg(T&& arg, sgr_chars sgr)
+    constexpr internal::color_arg<T> make_color_arg(T&& arg, sgr_chars sgr)
     {
         return internal::color_arg<T>(std::forward<T>(arg), user_default, user_default, sgr);
     }

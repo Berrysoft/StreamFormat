@@ -26,75 +26,20 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#if !defined(SF_CXX11) && (__cplusplus >= 201103L || _MSVC_LANG >= 201103L)
-#define SF_CXX11
-#endif // C++11
-
-#if !defined(SF_CXX14) && (__cplusplus >= 201402L || _MSVC_LANG >= 201402L)
-#define SF_CXX14
-#endif // C++14
-
-#if !defined(SF_CXX17) && (__cplusplus >= 201703L || _MSVC_LANG >= 201703L)
-#define SF_CXX17
-#endif // C++17
-
-#ifndef SF_CONSTEXPR
-#if defined(SF_CXX14) || _MSC_VER >= 1910
-#define SF_CONSTEXPR constexpr
-#define SF_CONSTEXPR_DECL constexpr
-#elif defined(SF_CXX11) || _MSC_VER >= 1900
-#define SF_CONSTEXPR inline
-#define SF_CONSTEXPR_DECL constexpr
-#else
-#define SF_CONSTEXPR inline
-#define SF_CONSTEXPR_DECL const
-#endif // SF_CXX14
-#endif // !SF_CONSTEXPR
-
-#ifndef SF_NOEXCEPT
-#if defined(SF_CXX11) || _MSC_VER >= 1900
-#define SF_NOEXCEPT noexcept
-#else
-#define SF_NOEXCEPT throw()
-#endif // SF_CXX11
-#endif // !SF_NOEXCEPT
-
-#ifndef SF_NULLPTR
-#if defined(SF_CXX11) || _MSC_VER >= 1600
-#define SF_NULLPTR nullptr
-#else
-#define SF_NULLPTR 0
-#endif // SF_CXX11
-#endif // !SF_NULLPTR
-
 #if defined(_MSC_VER) && defined(_UNICODE) && !defined(SF_FORCE_WIDE_IO)
 #define SF_FORCE_WIDE_IO 1
 #endif // !SF_FORCE_WIDE_IO
 
 #ifndef SF_CHAR_TEMPLATE
-#define SF_CHAR_TEMPLATE(name, value)        \
-    template <typename Char>                 \
-    SF_CONSTEXPR Char name() SF_NOEXCEPT;    \
-    template <>                              \
-    SF_CONSTEXPR char name() SF_NOEXCEPT     \
-    {                                        \
-        return value;                        \
-    }                                        \
-    template <>                              \
-    SF_CONSTEXPR char16_t name() SF_NOEXCEPT \
-    {                                        \
-        return u##value;                     \
-    }                                        \
-    template <>                              \
-    SF_CONSTEXPR char32_t name() SF_NOEXCEPT \
-    {                                        \
-        return U##value;                     \
-    }                                        \
-    template <>                              \
-    SF_CONSTEXPR wchar_t name() SF_NOEXCEPT  \
-    {                                        \
-        return L##value;                     \
-    }
+#define SF_CHAR_TEMPLATE(name, value)              \
+    template <typename Char>                       \
+    constexpr Char name{ value };                  \
+    template <>                                    \
+    constexpr char16_t name<char16_t>{ u##value }; \
+    template <>                                    \
+    constexpr char32_t name<char32_t>{ U##value }; \
+    template <>                                    \
+    constexpr wchar_t name<wchar_t>{ L##value };
 #endif // !SF_CHAR_TEMPLATE
 
 #endif // !SF_UTILITY_HPP

@@ -28,8 +28,6 @@
 
 #include <sf/utility.hpp>
 
-#ifdef SF_CXX11
-
 #include <ostream>
 #include <tuple>
 
@@ -41,60 +39,28 @@ namespace sf
         SF_CHAR_TEMPLATE(sqr_bra, '[')
         SF_CHAR_TEMPLATE(smcolon, ';')
 
-        template <typename Char, typename Traits>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream)
-        {
-            return stream;
-        }
-        template <typename Char, typename Traits, typename Arg0>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0)
-        {
-            return stream << std::forward<Arg0>(arg0);
-        }
         template <typename Char, typename Traits, typename Arg0, typename... Args>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0, Args&&... args)
+        constexpr std::basic_ostream<Char, Traits>& join_args(std::basic_ostream<Char, Traits>& stream, Arg0&& arg0, Args&&... args)
         {
-            return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>(), std::forward<Args>(args)...);
+            if constexpr (sizeof...(Args) > 0)
+                return join_args(stream << std::forward<Arg0>(arg0) << smcolon<Char>, std::forward<Args>(args)...);
+            else
+                return stream << std::forward<Arg0>(arg0);
         }
 
-        template <std::size_t... Indices>
-        struct index_sequence
+        template <typename Char, typename Traits, typename... Args, std::size_t... Indeces>
+        constexpr std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, std::index_sequence<Indeces...>)
         {
-        };
-
-        template <std::size_t N, typename = void>
-        struct make_index_sequence_impl
-        {
-            template <typename>
-            struct tmp;
-
-            template <std::size_t... Prev>
-            struct tmp<index_sequence<Prev...>>
-            {
-                using type = index_sequence<Prev..., N - 1>;
-            };
-
-            using type = typename tmp<typename make_index_sequence_impl<N - 1>::type>::type;
-        };
-        template <std::size_t N>
-        struct make_index_sequence_impl<N, typename std::enable_if<N == 0>::type>
-        {
-            using type = index_sequence<>;
-        };
-
-        template <std::size_t N>
-        using make_index_sequence = typename make_index_sequence_impl<N>::type;
-
-        template <typename Char, typename Traits, typename... Args, std::size_t... Indices>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& join_args_helper(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args, index_sequence<Indices...>)
-        {
-            return join_args(stream, std::get<Indices>(args)...);
+            return join_args(stream, std::get<Indeces>(args)...);
         }
 
         template <typename Char, typename Traits, typename... Args>
-        SF_CONSTEXPR std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args)
+        constexpr std::basic_ostream<Char, Traits>& write_ansi(std::basic_ostream<Char, Traits>& stream, const std::tuple<Args...>& args)
         {
-            return join_args_helper(stream << esc<Char>() << sqr_bra<Char>(), args, make_index_sequence<sizeof...(Args)>());
+            if constexpr (sizeof...(Args) > 0)
+                return join_args_helper(stream << esc<Char> << sqr_bra<Char>, args, std::make_index_sequence<sizeof...(Args)>{});
+            else
+                return stream << esc<Char> << sqr_bra<Char>;
         }
 
         //Write Console Virtual Terminal Sequences (ANSI Control Characters) to a stream.
@@ -108,14 +74,14 @@ namespace sf
         public:
             ansi_control(C endc, Args&&... args) : endc(endc), args(std::forward<Args>(args)...) {}
             template <typename Char, typename Traits = std::char_traits<Char>>
-            friend SF_CONSTEXPR std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl)
+            friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl)
             {
                 return write_ansi(stream, ctrl.args) << ctrl.endc;
             }
         };
 
         template <typename Char, typename... Args>
-        SF_CONSTEXPR ansi_control<Char, Args...> make_ansi_control(Char endc, Args&&... args)
+        constexpr ansi_control<Char, Args...> make_ansi_control(Char endc, Args&&... args)
         {
             return ansi_control<Char, Args...>(endc, std::forward<Args>(args)...);
         }
@@ -138,11 +104,11 @@ namespace sf
         SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-#define SF_MAKE_MOVE(name, charname)                                                  \
-    template <typename Char>                                                          \
-    SF_CONSTEXPR internal::ansi_control<Char, std::size_t> name(std::size_t n = 1)    \
-    {                                                                                 \
-        return internal::make_ansi_control(internal::charname<Char>(), std::move(n)); \
+#define SF_MAKE_MOVE(name, charname)                                                \
+    template <typename Char>                                                        \
+    constexpr internal::ansi_control<Char, std::size_t> name(std::size_t n = 1)     \
+    {                                                                               \
+        return internal::make_ansi_control(internal::charname<Char>, std::move(n)); \
     }
 
     SF_MAKE_MOVE(make_cursor_upward, cuu_end)
@@ -155,9 +121,9 @@ namespace sf
     SF_MAKE_MOVE(make_cursor_abs_line, cha_end)
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, std::size_t, std::size_t> make_cursor_set_pos(std::size_t line = 1, std::size_t index = 1)
+    constexpr internal::ansi_control<Char, std::size_t, std::size_t> make_cursor_set_pos(std::size_t line = 1, std::size_t index = 1)
     {
-        return internal::make_ansi_control(internal::cup_end<Char>(), std::move(line), std::move(index));
+        return internal::make_ansi_control(internal::cup_end<Char>, std::move(line), std::move(index));
     }
 
     enum erase_opt
@@ -169,44 +135,42 @@ namespace sf
     };
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, int> make_erase_screen(erase_opt opt)
+    constexpr internal::ansi_control<Char, int> make_erase_screen(erase_opt opt)
     {
-        return internal::make_ansi_control(internal::ed_end<Char>(), static_cast<int>(opt));
+        return internal::make_ansi_control(internal::ed_end<Char>, static_cast<int>(opt));
     }
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, int> make_erase_line(erase_opt opt)
+    constexpr internal::ansi_control<Char, int> make_erase_line(erase_opt opt)
     {
-        return internal::make_ansi_control(internal::el_end<Char>(), static_cast<int>(opt));
+        return internal::make_ansi_control(internal::el_end<Char>, static_cast<int>(opt));
     }
 
     SF_MAKE_MOVE(make_scroll_up, su_end)
     SF_MAKE_MOVE(make_scroll_down, sd_end)
 
     template <typename Char, typename... Args>
-    SF_CONSTEXPR internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args)
+    constexpr internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args)
     {
-        return internal::make_ansi_control(internal::sgr_end<Char>(), std::forward<Args>(args)...);
+        return internal::make_ansi_control(internal::sgr_end<Char>, std::forward<Args>(args)...);
     }
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char, int> make_cursor_pos_report()
+    constexpr internal::ansi_control<Char, int> make_cursor_pos_report()
     {
-        return internal::make_ansi_control(internal::dsr_end<Char>(), 6);
+        return internal::make_ansi_control(internal::dsr_end<Char>, 6);
     }
 
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char> make_cursor_save()
+    constexpr internal::ansi_control<Char> make_cursor_save()
     {
-        return internal::make_ansi_control(internal::scp_end<Char>());
+        return internal::make_ansi_control(internal::scp_end<Char>);
     }
     template <typename Char>
-    SF_CONSTEXPR internal::ansi_control<Char> make_cursor_restore()
+    constexpr internal::ansi_control<Char> make_cursor_restore()
     {
-        return internal::make_ansi_control(internal::rcp_end<Char>());
+        return internal::make_ansi_control(internal::rcp_end<Char>);
     }
 } // namespace sf
-
-#endif // SF_CXX11
 
 #endif // !SF_ANSI_HPP
