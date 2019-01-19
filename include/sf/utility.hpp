@@ -2,7 +2,7 @@
  * 
  * MIT License
  * 
- * Copyright (c) 2018 Berrysoft
+ * Copyright (c) 2018-2019 Berrysoft
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,22 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#if defined(_MSC_VER) && defined(_UNICODE) && !defined(SF_FORCE_WIDE_IO)
+#if defined(_UNICODE) && !defined(SF_FORCE_WIDE_IO)
 #define SF_FORCE_WIDE_IO 1
 #endif // !SF_FORCE_WIDE_IO
 
 #ifndef SF_CHAR_TEMPLATE
-#define SF_CHAR_TEMPLATE(name, value)              \
-    template <typename Char>                       \
-    constexpr Char name{ value };                  \
-    template <>                                    \
-    constexpr char16_t name<char16_t>{ u##value }; \
-    template <>                                    \
-    constexpr char32_t name<char32_t>{ U##value }; \
-    template <>                                    \
-    constexpr wchar_t name<wchar_t>{ L##value };
+#define SF_CHAR_TEMPLATE(name, value)                     \
+    template <typename Char>                              \
+    inline constexpr Char name{};                         \
+    template <>                                           \
+    inline constexpr char name<char>{ value };            \
+    template <>                                           \
+    inline constexpr char16_t name<char16_t>{ u##value }; \
+    template <>                                           \
+    inline constexpr char32_t name<char32_t>{ U##value }; \
+    template <>                                           \
+    inline constexpr wchar_t name<wchar_t>{ L##value };
 #endif // !SF_CHAR_TEMPLATE
 
 #endif // !SF_UTILITY_HPP

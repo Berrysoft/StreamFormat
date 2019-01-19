@@ -2,7 +2,7 @@
  * 
  * MIT License
  * 
- * Copyright (c) 2018 Berrysoft
+ * Copyright (c) 2018-2019 Berrysoft
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,16 +28,11 @@
 
 #include <sf/utility.hpp>
 
-#ifdef SF_WIN_NATIVE_COLOR
-#include <Windows.h>
-#else
 #include <sf/ansi.hpp>
 #include <variant>
-#endif // SF_WIN_NATIVE_COLOR
 
 namespace sf
 {
-#ifndef SF_WIN_NATIVE_COLOR
     enum sgr_chars : unsigned char
     {
         normal,
@@ -155,72 +150,6 @@ namespace sf
     } // namespace internal
 
     using color_type = internal::color_type;
-#else
-    enum sgr_chars : WORD
-    {
-        normal = 0x0,
-        bold = 0x8 //bright
-    };
-    enum preset_color : WORD
-    {
-        black = 0x0,
-        blue = 0x1,
-        green = 0x2,
-        cyan = blue | green,
-        red = 0x4,
-        magenta = blue | red,
-        yellow = green | red,
-        white = blue | green | red,
-        bright_base = 0x8,
-        bright_black = black | bright_base,
-        bright_blue = blue | bright_base,
-        bright_green = green | bright_base,
-        bright_cyan = cyan | bright_base,
-        bright_red = red | bright_base,
-        bright_magenta = magenta | bright_base,
-        bright_yellow = yellow | bright_base,
-        bright_white = white | bright_base,
-        color_mask = 0xF,
-        background_base = 0x10,
-        user_default = 0x100
-    };
-
-    namespace internal
-    {
-        //Pack an arg with its foreground and background color.
-        template <typename T>
-        class color_arg
-        {
-        private:
-            T arg;
-            preset_color fore, back;
-            sgr_chars sgr;
-
-        public:
-            constexpr color_arg() : fore(user_default), back(user_default), sgr(normal) {}
-            constexpr color_arg(T&& arg, preset_color fore, preset_color back, sgr_chars sgr) : arg(arg), fore(fore), back(back), sgr(sgr) {}
-            template <typename Char, typename Traits>
-            friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg<T>& arg)
-            {
-                HANDLE hc = GetStdHandle(STD_OUTPUT_HANDLE);
-                CONSOLE_SCREEN_BUFFER_INFO info;
-                WORD def = static_cast<WORD>(white) | (static_cast<WORD>(black) * background_base);
-                if (GetConsoleScreenBufferInfo(hc, &info))
-                {
-                    def = info.wAttributes;
-                }
-                WORD fw = (arg.fore == user_default ? (def & color_mask) : arg.fore) | arg.sgr;
-                WORD bw = arg.back == user_default ? (def & (color_mask * background_base)) : arg.back * background_base;
-                SetConsoleTextAttribute(hc, fw | bw);
-                stream << arg.arg;
-                SetConsoleTextAttribute(hc, def);
-                return stream;
-            }
-        };
-    } // namespace internal
-
-    using color_type = preset_color;
-#endif // !SF_WIN_NATIVE_COLOR
 
     template <typename T>
     constexpr internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal)
