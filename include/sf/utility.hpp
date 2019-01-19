@@ -37,11 +37,11 @@
     template <>                                           \
     inline constexpr char name<char>{ value };            \
     template <>                                           \
+    inline constexpr wchar_t name<wchar_t>{ L##value };   \
+    template <>                                           \
     inline constexpr char16_t name<char16_t>{ u##value }; \
     template <>                                           \
-    inline constexpr char32_t name<char32_t>{ U##value }; \
-    template <>                                           \
-    inline constexpr wchar_t name<wchar_t>{ L##value };
+    inline constexpr char32_t name<char32_t>{ U##value };
 #endif // !SF_CHAR_TEMPLATE
 
 #endif // !SF_UTILITY_HPP
