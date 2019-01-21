@@ -33,7 +33,7 @@
 
 namespace sf
 {
-    enum sgr_chars : unsigned char
+    enum sgr_chars : std::uint8_t
     {
         normal,
         bold,
@@ -67,7 +67,7 @@ namespace sf
         overlined_off
     };
 
-    enum preset_color : unsigned char
+    enum preset_color : std::uint8_t
     {
         black = 30,
         red,
@@ -90,16 +90,14 @@ namespace sf
 
     struct rgb_color
     {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-        rgb_color() = default;
-        constexpr rgb_color(unsigned char r, unsigned char g, unsigned char b) : r(r), g(g), b(b) {}
+        std::uint8_t r;
+        std::uint8_t g;
+        std::uint8_t b;
     };
 
     namespace internal
     {
-        using color_type = std::variant<preset_color, std::byte, rgb_color>;
+        using color_type = std::variant<preset_color, std::uint8_t, rgb_color>;
         class color
         {
         private:
@@ -118,7 +116,7 @@ namespace sf
                     stream << (static_cast<int>(std::get<preset_color>(c.value)) + (c.isback ? 10 : 0));
                     break;
                 case 1: //unsigned char
-                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(std::get<std::byte>(c.value)));
+                    join_args(stream, static_cast<int>(c.isback ? background : foreground), 5, static_cast<int>(std::get<std::uint8_t>(c.value)));
                     break;
                 case 2: //rgb_color
                     rgb_color rgb = std::get<rgb_color>(c.value);
