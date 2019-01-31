@@ -42,6 +42,13 @@ namespace sf
             format<input>(iss, fmt, std::forward<Args>(args)...);
             return iss.tellg();
         }
+        template <typename Char, typename Traits, typename Allocator, typename... Args>
+        constexpr std::tuple<typename Traits::pos_type, Args...> sscan(const std::basic_string<Char, Traits, Allocator>& str, const std::basic_string_view<Char, Traits>& fmt)
+        {
+            std::tuple<typename Traits::pos_type, Args...> t{};
+            std::apply([&str, fmt](auto& pos, auto&... args) { pos = sscan<Char, Traits, Allocator, Args&...>(str, fmt, args...); }, t);
+            return t;
+        }
         template <typename Char, typename Traits, typename Allocator, typename T>
         constexpr typename Traits::pos_type sscan(const std::basic_string<Char, Traits, Allocator>& str, T&& arg)
         {
@@ -73,6 +80,11 @@ namespace sf
         return internal::sscan<Char, Traits, Allocator>(str, fmt, std::forward<Args>(args)...);
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename... Args>
+    constexpr std::tuple<typename Traits::pos_type, Args...> sscan(const std::basic_string<Char, Traits, Allocator>& str, std::basic_string_view<Char, Traits> fmt)
+    {
+        return internal::sscan<Char, Traits, Allocator, Args...>(str, fmt);
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename Allocator = std::allocator<Char>, typename... Args>
     constexpr std::basic_string<Char, Traits, Allocator> sprint(std::basic_string_view<Char, Traits> fmt, Args&&... args)
     {
         return internal::sprint<Char, Traits, Allocator>(fmt, std::forward<Args>(args)...);
@@ -88,6 +100,11 @@ namespace sf
         return internal::sscan<char, std::char_traits<char>, std::allocator<char>>(str, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
+    constexpr auto sscan(const std::string& str, std::string_view fmt)
+    {
+        return internal::sscan<char, std::char_traits<char>, std::allocator<char>, Args...>(str, fmt);
+    }
+    template <typename... Args>
     constexpr auto sprint(std::string_view fmt, Args&&... args)
     {
         return internal::sprint<char, std::char_traits<char>, std::allocator<char>>(fmt, std::forward<Args>(args)...);
@@ -98,6 +115,11 @@ namespace sf
     constexpr auto sscan(const std::wstring& str, std::wstring_view fmt, Args&&... args)
     {
         return internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto sscan(const std::wstring& str, std::wstring_view fmt)
+    {
+        return internal::sscan<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>(str, fmt);
     }
     template <typename... Args>
     constexpr auto sprint(std::wstring_view fmt, Args&&... args)

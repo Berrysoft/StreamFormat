@@ -7,9 +7,8 @@ int main(int argc, char** argv)
 {
     if (argc > 2)
     {
-        int a, b;
         string result;
-        auto pos = sscan(argv[1], "{}{1}", a, b);
+        auto [pos, a, b] = sscan<int, int>(argv[1], "{}{1}");
         if (pos != decltype(pos)(-1))
         {
             sscan(argv[1] + pos, result);
