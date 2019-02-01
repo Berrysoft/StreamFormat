@@ -451,6 +451,22 @@ namespace sf
         {
             return arg_io<IOState, T, Char, Traits>(std::forward<T>(arg))(stream);
         }
+
+        template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
+        constexpr auto scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt)
+        {
+            static_assert(sizeof...(Args) > 0);
+            std::tuple<Args...> t{};
+            std::apply([&stream, fmt](auto&&... args) { format<internal::input, Char, Traits, Args&...>(stream, fmt, args...); }, t);
+            if constexpr (sizeof...(Args) > 1)
+            {
+                return t;
+            }
+            else
+            {
+                return std::get<0>(t);
+            }
+        }
     } // namespace internal
 
     //template IO
@@ -462,17 +478,7 @@ namespace sf
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
     constexpr auto scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt)
     {
-        static_assert(sizeof...(Args) > 0);
-        std::tuple<Args...> t{};
-        std::apply([&stream, fmt](auto&&... args) { internal::format<internal::input, Char, Traits, Args&...>(stream, fmt, args...); }, t);
-        if constexpr (sizeof...(Args) > 1)
-        {
-            return t;
-        }
-        else
-        {
-            return std::get<0>(t);
-        }
+        return internal::scan<Char, Traits, Args...>(stream, fmt);
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
     constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
@@ -494,7 +500,7 @@ namespace sf
     template <typename... Args>
     constexpr auto scan(std::istream& stream, std::string_view fmt)
     {
-        return scan<char, std::char_traits<char>, Args...>(stream, fmt);
+        return internal::scan<char, std::char_traits<char>, Args...>(stream, fmt);
     }
     template <typename... Args>
     constexpr std::istream& scan(std::string_view fmt, Args&&... args)
@@ -536,7 +542,7 @@ namespace sf
     template <typename... Args>
     constexpr auto scan(std::wistream& stream, std::wstring_view fmt)
     {
-        return scan<wchar_t, std::char_traits<wchar_t>, Args...>(stream, fmt);
+        return internal::scan<wchar_t, std::char_traits<wchar_t>, Args...>(stream, fmt);
     }
     template <typename... Args>
     constexpr std::wistream& scan(std::wstring_view fmt, Args&&... args)

@@ -134,6 +134,11 @@ namespace sf
         return internal::sscan<char16_t, std::char_traits<char16_t>, std::allocator<char16_t>>(str, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
+    constexpr auto sscan(const std::u16string& str, std::u16string_view fmt)
+    {
+        return internal::sscan<char16_t, std::char_traits<char16_t>, std::allocator<char16_t>>(str, fmt);
+    }
+    template <typename... Args>
     constexpr auto sprint(std::u16string_view fmt, Args&&... args)
     {
         return internal::sprint<char16_t, std::char_traits<char16_t>, std::allocator<char16_t>>(fmt, std::forward<Args>(args)...);
@@ -144,6 +149,11 @@ namespace sf
     constexpr auto sscan(const std::u32string& str, std::u32string_view fmt, Args&&... args)
     {
         return internal::sscan<char32_t, std::char_traits<char32_t>, std::allocator<char32_t>>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto sscan(const std::u32string& str, std::u32string_view fmt)
+    {
+        return internal::sscan<char32_t, std::char_traits<char32_t>, std::allocator<char32_t>>(str, fmt);
     }
     template <typename... Args>
     constexpr auto sprint(std::u32string_view fmt, Args&&... args)
