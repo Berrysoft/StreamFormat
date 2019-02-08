@@ -455,16 +455,18 @@ namespace sf
         template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
         constexpr auto scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt)
         {
-            static_assert(sizeof...(Args) > 0);
-            std::tuple<Args...> t{};
-            std::apply([&stream, fmt](auto&&... args) { format<internal::input, Char, Traits, Args&...>(stream, fmt, args...); }, t);
-            if constexpr (sizeof...(Args) > 1)
+            if constexpr (sizeof...(Args) > 0)
             {
-                return t;
-            }
-            else
-            {
-                return std::get<0>(t);
+                std::tuple<Args...> t{};
+                std::apply([&stream, fmt](auto&&... args) { format<internal::input, Char, Traits, Args&...>(stream, fmt, args...); }, t);
+                if constexpr (sizeof...(Args) > 1)
+                {
+                    return t;
+                }
+                else
+                {
+                    return std::get<0>(t);
+                }
             }
         }
     } // namespace internal
