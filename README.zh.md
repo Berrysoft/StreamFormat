@@ -44,8 +44,7 @@ sf::scan("{0} {1}", a, b);
 sf::print("a = {0}, b = {1}\n", a, b);//a = 123, b = 456
 
 std::istringstream iss("HTTP/1.1");
-double ver;
-sf::scan(iss, "HTTP/{}", ver);
+double ver = sf::scan<double>(iss, "HTTP/{}");
 sf::print("HTTP版本：{0:f1}", ver);//HTTP版本：1.1
 ```
 把一个右值引用传给`scan`是良好定义的，当且仅当这个参数类型是*可移动构造*的。

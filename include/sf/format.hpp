@@ -606,6 +606,13 @@ namespace sf
         return scan(std::cin, std::forward<T>(arg));
     }
     template <typename T>
+    constexpr T scan()
+    {
+        T result;
+        scan(std::cin, result);
+        return result;
+    }
+    template <typename T>
     constexpr std::ostream& print(T&& arg)
     {
         return print(std::cout, std::forward<T>(arg));
@@ -625,6 +632,13 @@ namespace sf
     constexpr std::wistream& scan(T&& arg)
     {
         return scan(std::wcin, std::forward<T>(arg));
+    }
+    template <typename T>
+    constexpr T scan()
+    {
+        T result;
+        scan(std::wcin, result);
+        return result;
     }
     template <typename T>
     constexpr std::wostream& print(T&& arg)

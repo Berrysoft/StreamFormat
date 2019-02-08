@@ -44,8 +44,7 @@ sf::scan("{0} {1}", a, b);
 sf::print("a = {0}, b = {1}\n", a, b);//a = 123, b = 456
 
 std::istringstream iss("HTTP/1.1");
-double ver;
-sf::scan(iss, "HTTP/{}", ver);
+double ver = sf::scan<double>(iss, "HTTP/{}");
 sf::print("The HTTP version: {0:f1}", ver);//The HTTP version: 1.1
 ```
 It is an well-defined behavior to pass an rvalue to `scan`, if and only if the type of the argument is *MoveConstructible*.
