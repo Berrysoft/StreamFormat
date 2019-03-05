@@ -100,25 +100,12 @@ namespace sf
         SF_CHAR_TEMPLATE(zero, '0')
         SF_CHAR_TEMPLATE(nine, '9')
 
-#ifndef SF_USE_NO_EXCEPT
-        template <typename Char>
-        constexpr bool isdigit(Char c)
-        {
-            return c >= zero<Char> && c <= nine<Char>;
-        }
-#endif // !SF_USE_NO_EXCEPT
         template <typename Int, typename Char, typename Traits>
         constexpr Int stou(const std::basic_string_view<Char, Traits>& str)
         {
             Int result(0);
             for (const Char& c : str)
             {
-#ifndef SF_USE_NO_EXCEPT
-                if (!isdigit(c))
-                {
-                    throw std::invalid_argument("Not digit.");
-                }
-#endif // !SF_USE_NO_EXCEPT
                 result *= 10;
                 result += c - zero<Char>;
             }
@@ -135,13 +122,11 @@ namespace sf
         SF_CHAR_TEMPLATE(right_brace, '}')
 
         //Input/Output string slice.
-        template <io_state, typename Char, typename Traits>
-        class string_view_io;
-        template <typename Char, typename Traits>
-        class string_view_io<input, Char, Traits>
+        template <io_state IOState, typename Char, typename Traits>
+        class string_view_io
         {
         public:
-            typedef stream_t<input, Char, Traits> stream_type;
+            typedef stream_t<IOState, Char, Traits> stream_type;
             typedef std::basic_string_view<Char, Traits> string_view_type;
 
         private:
@@ -149,60 +134,49 @@ namespace sf
 
         public:
             string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
-            stream_type& operator()(stream_type& is)
+            stream_type& operator()(stream_type& stream)
             {
-                if (is)
+                if constexpr (IOState == io_state::input)
                 {
-                    for (const Char& c : arg)
+                    if (stream)
                     {
-                        if (Traits::eq(c, space<Char>))
+                        for (const Char& c : arg)
                         {
-                            while (true)
+                            if (Traits::eq(c, space<Char>))
                             {
-                                auto t = is.peek();
-                                if (t != Traits::eof() &&
-                                    (Traits::eq(t, space<Char>) || Traits::eq(t, tab<Char>) || Traits::eq(t, vtab<Char>) || Traits::eq(t, cr<Char>) || Traits::eq(t, lf<Char>)))
+                                while (true)
                                 {
-                                    is.get();
-                                }
-                                else
-                                {
-                                    break;
+                                    auto t = stream.peek();
+                                    if (t != Traits::eof() &&
+                                        (Traits::eq(t, space<Char>) || Traits::eq(t, tab<Char>) || Traits::eq(t, vtab<Char>) || Traits::eq(t, cr<Char>) || Traits::eq(t, lf<Char>)))
+                                    {
+                                        stream.get();
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            while (true)
+                            else
                             {
-                                auto t = is.get();
-                                if (t == Traits::eof() || Traits::eq(t, c))
+                                while (true)
                                 {
-                                    break;
+                                    auto t = stream.get();
+                                    if (t == Traits::eof() || Traits::eq(t, c))
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
+                    return stream;
                 }
-                return is;
-            }
-        };
-        template <typename Char, typename Traits>
-        class string_view_io<output, Char, Traits>
-        {
-        public:
-            typedef stream_t<output, Char, Traits> stream_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
-            typedef typename string_view_type::size_type int_type;
-
-        private:
-            string_view_type arg;
-
-        public:
-            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
-            constexpr stream_type& operator()(stream_type& os)
-            {
-                return os << arg;
+                else
+                {
+                    return stream << arg;
+                }
             }
         };
 
@@ -254,14 +228,14 @@ namespace sf
         };
         template <io_state IOState, typename Char, typename Traits>
         const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> format_setf<IOState, Char, Traits>::methods = {
-            { cdec<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, '0'> },
-            { coct<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, '0'> },
-            { chex<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, '0'> },
+            { cdec<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, zero<Char>> },
+            { coct<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, zero<Char>> },
+            { chex<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, zero<Char>> },
             { csci<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
             { cfix<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
-            { clft<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, ' '> },
-            { crit<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, ' '> },
-            { citn<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, ' '> },
+            { clft<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, space<Char>> },
+            { crit<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, space<Char>> },
+            { citn<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, space<Char>> },
             { cbla<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
             { cupc<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
             { cgen<Char>, stream_setf<IOState, Char, Traits> }
@@ -285,7 +259,7 @@ namespace sf
             format_arg_io(arg_type& ori, const string_view_type& fmts) : ori(ori), fmts(fmts) {}
             stream_type& operator()(stream_type& stream)
             {
-                std::ios_base::fmtflags oldf = static_cast<std::ios_base::fmtflags>(0);
+                std::ios_base::fmtflags oldf{};
                 int_type length = fmts.length();
                 int_type offset = 0, index = 0;
                 for (; index <= length; index++)
@@ -304,12 +278,6 @@ namespace sf
                         {
                             oldf |= (it->second)(stream, fmtf);
                         }
-#ifndef SF_USE_NO_EXCEPT
-                        else
-                        {
-                            throw std::logic_error("Invalid format character.");
-                        }
-#endif // !SF_USE_NO_EXCEPT
                         offset = index + 1;
                     }
                 }
@@ -337,8 +305,7 @@ namespace sf
             arg_list_type args;
 
         public:
-            constexpr format_string_view(const string_view_type& fmt, arg_list_type&& args)
-                : fmt(fmt), args(std::move(args))
+            constexpr format_string_view(const string_view_type& fmt, arg_list_type&& args) : fmt(fmt), args(std::move(args))
             {
             }
             stream_type& operator()(stream_type& stream)
@@ -368,12 +335,8 @@ namespace sf
                                 index++;
                                 if (!(index < length && Traits::eq(fmt[index], right_brace<Char>)))
                                 {
-#ifndef SF_USE_NO_EXCEPT
-                                    throw std::logic_error("No \"{\" matches \"}\".");
-#else
                                     index--;
                                     continue;
-#endif // !SF_USE_NO_EXCEPT
                                 }
                             }
                             else
@@ -386,7 +349,7 @@ namespace sf
                         offset = index + 1;
                         if (len <= 0)
                             continue;
-                        string_view_io_type(fmt.substr(off, len))(stream);
+                        string_view_io_type{ fmt.substr(off, len) }(stream);
                     }
                     else
                     {
@@ -397,12 +360,8 @@ namespace sf
                         }
                         if (index == length)
                         {
-#ifndef SF_USE_NO_EXCEPT
-                            throw std::logic_error("No \"}\" was found after \"{\".");
-#else
                             string_view_io_type(fmt.substr(offset - 1))(stream);
                             offset = index + 1;
-#endif // !SF_USE_NO_EXCEPT
                         }
                         else
                         {
@@ -421,7 +380,7 @@ namespace sf
                             }
                             if (arg_index >= args.size())
                             {
-                                string_view_io_type(fmt.substr(offset - 1, index - offset + 2))(stream);
+                                string_view_io_type{ fmt.substr(offset - 1, index - offset + 2) }(stream);
                             }
                             else if (index == ci)
                             {
@@ -429,7 +388,7 @@ namespace sf
                             }
                             else
                             {
-                                format_arg_io<IOState, Char, Traits>(args[arg_index], fmt.substr(ci + 1, index - ci - 1))(stream);
+                                format_arg_io<IOState, Char, Traits>{ args[arg_index], fmt.substr(ci + 1, index - ci - 1) }(stream);
                             }
                             offset = index + 1;
                             arg_index++;
@@ -443,91 +402,37 @@ namespace sf
         template <io_state IOState, typename Char, typename Traits, typename... Args>
         constexpr stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
         {
-            return format_string_view<IOState, Char, Traits>(fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... })(stream);
-        }
-
-        template <io_state IOState, typename Char, typename Traits, typename T>
-        constexpr stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, T&& arg)
-        {
-            return arg_io<IOState, T, Char, Traits>(std::forward<T>(arg))(stream);
-        }
-
-        template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-        constexpr auto scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt)
-        {
-            if constexpr (sizeof...(Args) > 0)
-            {
-                std::tuple<Args...> t{};
-                std::apply([&stream, fmt](auto&&... args) { format<internal::input, Char, Traits, Args&...>(stream, fmt, args...); }, t);
-                if constexpr (sizeof...(Args) > 1)
-                {
-                    return t;
-                }
-                else
-                {
-                    return std::get<0>(t);
-                }
-            }
+            return format_string_view<IOState, Char, Traits>{ fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... } }(stream);
         }
     } // namespace internal
 
     //template IO
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename... Args, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
+    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, String&& fmt, Args&&... args)
     {
-        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
+        return internal::format<internal::input, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
     }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr auto scan(std::basic_istream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt)
+    template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename... Args, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
+    constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, String&& fmt, Args&&... args)
     {
-        return internal::scan<Char, Traits, Args...>(stream, fmt);
+        return internal::format<internal::output, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
     }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
+    template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename... Args, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
+    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, String&& fmt, Args&&... args)
     {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
-    }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename... Args>
-    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
-    {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
+        return internal::format<internal::output, Char, Traits>(stream, fmt, std::forward<Args>(args)...) << std::endl;
     }
 
     //char IO
-    template <typename... Args>
-    constexpr std::istream& scan(std::istream& stream, std::string_view fmt, Args&&... args)
-    {
-        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    constexpr auto scan(std::istream& stream, std::string_view fmt)
-    {
-        return internal::scan<char, std::char_traits<char>, Args...>(stream, fmt);
-    }
     template <typename... Args>
     constexpr std::istream& scan(std::string_view fmt, Args&&... args)
     {
         return scan(std::cin, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    constexpr std::tuple<Args...> scan(std::string_view fmt)
-    {
-        return scan<Args...>(std::cin, fmt);
-    }
-    template <typename... Args>
-    constexpr std::ostream& print(std::ostream& stream, std::string_view fmt, Args&&... args)
-    {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
     constexpr std::ostream& print(std::string_view fmt, Args&&... args)
     {
         return print(std::cout, fmt, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    constexpr std::ostream& println(std::ostream& stream, std::string_view fmt, Args&&... args)
-    {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
     }
     template <typename... Args>
     constexpr std::ostream& println(std::string_view fmt, Args&&... args)
@@ -537,29 +442,9 @@ namespace sf
 
     //wchar_t IO
     template <typename... Args>
-    constexpr std::wistream& scan(std::wistream& stream, std::wstring_view fmt, Args&&... args)
-    {
-        return internal::format<internal::input>(stream, fmt, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    constexpr auto scan(std::wistream& stream, std::wstring_view fmt)
-    {
-        return internal::scan<wchar_t, std::char_traits<wchar_t>, Args...>(stream, fmt);
-    }
-    template <typename... Args>
     constexpr std::wistream& scan(std::wstring_view fmt, Args&&... args)
     {
         return scan(std::wcin, fmt, std::forward<Args>(args)...);
-    }
-    template <typename... Args>
-    constexpr std::tuple<Args...> scan(std::wstring_view fmt)
-    {
-        return scan<Args...>(std::wcin, fmt);
-    }
-    template <typename... Args>
-    constexpr std::wostream& print(std::wostream& stream, std::wstring_view fmt, Args&&... args)
-    {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
     constexpr std::wostream& print(std::wstring_view fmt, Args&&... args)
@@ -567,96 +452,10 @@ namespace sf
         return print(std::wcout, fmt, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    constexpr std::wostream& println(std::wostream& stream, std::wstring_view fmt, Args&&... args)
-    {
-        return internal::format<internal::output>(stream, fmt, std::forward<Args>(args)...) << std::endl;
-    }
-    template <typename... Args>
     constexpr std::wostream& println(std::wstring_view fmt, Args&&... args)
     {
         return println(std::wcout, fmt, std::forward<Args>(args)...);
     }
-
-    //Simple IO functions for convinence.
-
-    //template IO
-    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
-    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, T&& arg)
-    {
-        return internal::format<internal::input, Char, Traits, T>(stream, std::forward<T>(arg));
-    }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
-    constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, T&& arg)
-    {
-        return internal::format<internal::output, Char, Traits, T>(stream, std::forward<T>(arg));
-    }
-    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
-    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, T&& arg)
-    {
-        return print<Char, Traits, T>(stream, std::forward<T>(arg)) << std::endl;
-    }
-    template <typename Char, typename Traits = std::char_traits<Char>>
-    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream)
-    {
-        return print<Char, Traits>(stream, std::endl<Char, Traits>);
-    }
-#if !SF_FORCE_WIDE_IO
-    //char IO
-    template <typename T>
-    constexpr std::istream& scan(T&& arg)
-    {
-        return scan(std::cin, std::forward<T>(arg));
-    }
-    template <typename T>
-    constexpr T scan()
-    {
-        T result;
-        scan(std::cin, result);
-        return result;
-    }
-    template <typename T>
-    constexpr std::ostream& print(T&& arg)
-    {
-        return print(std::cout, std::forward<T>(arg));
-    }
-    template <typename T>
-    constexpr std::ostream& println(T&& arg)
-    {
-        return println(std::cout, std::forward<T>(arg));
-    }
-    constexpr std::ostream& println()
-    {
-        return println<char>(std::cout);
-    }
-#else
-    //wchar_t IO
-    template <typename T>
-    constexpr std::wistream& scan(T&& arg)
-    {
-        return scan(std::wcin, std::forward<T>(arg));
-    }
-    template <typename T>
-    constexpr T scan()
-    {
-        T result;
-        scan(std::wcin, result);
-        return result;
-    }
-    template <typename T>
-    constexpr std::wostream& print(T&& arg)
-    {
-        return print(std::wcout, std::forward<T>(arg));
-    }
-    template <typename T>
-    constexpr std::wostream& println(T&& arg)
-    {
-        return println(std::wcout, std::forward<T>(arg));
-    }
-    constexpr std::wostream& println()
-    {
-        return println<wchar_t>(std::wcout);
-    }
-#endif // !SF_FORCE_WIDE_IO
 } // namespace sf
 
 #endif // !SF_FORMAT_HPP

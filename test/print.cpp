@@ -12,9 +12,9 @@ int main()
     println(oss, "0x{:x8,u}", 4276215469);
     print(oss, "{}\n", "Hello, world!");
     print(oss, "{0:b,l8}", true);
-    println<char>(oss);
-    oss << sprint("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));
-    oss << sprint(123.456) << endl;
+    println(oss, "");
+    oss << sprint<char>("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));
+    oss << sprint<char>("{}", 123.456) << endl;
     if (oss.str() == "Test\n\n0xFEE1DEAD\nHello, world!\ntrue    \n123{321}123\n123.456\n")
     {
         println("Success.");

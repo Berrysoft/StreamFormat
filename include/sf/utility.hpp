@@ -26,10 +26,6 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#if defined(_UNICODE) && !defined(SF_FORCE_WIDE_IO)
-#define SF_FORCE_WIDE_IO 1
-#endif // !SF_FORCE_WIDE_IO
-
 #ifndef SF_CHAR_TEMPLATE
 #define SF_CHAR_TEMPLATE(name, value)                     \
     template <typename Char>                              \
