@@ -400,9 +400,15 @@ namespace sf
         };
 
         template <io_state IOState, typename Char, typename Traits, typename... Args>
-        constexpr stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, const std::basic_string_view<Char, Traits>& fmt, Args&&... args)
+        constexpr stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
         {
             return format_string_view<IOState, Char, Traits>{ fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... } }(stream);
+        }
+
+        template <io_state IOState, typename Char, typename Traits, typename T>
+        constexpr stream_t<IOState, Char, Traits>& put(stream_t<IOState, Char, Traits>& stream, T&& arg)
+        {
+            return arg_io<IOState, T, Char, Traits>{ std::forward<T>(arg) }(stream);
         }
     } // namespace internal
 
@@ -429,32 +435,70 @@ namespace sf
     {
         return scan(std::cin, fmt, std::forward<Args>(args)...);
     }
+    template <typename T>
+    constexpr std::istream& scan(T&& arg)
+    {
+        return internal::put<internal::input, char, std::char_traits<char>>(std::cin, std::forward<T>(arg));
+    }
     template <typename... Args>
     constexpr std::ostream& print(std::string_view fmt, Args&&... args)
     {
         return print(std::cout, fmt, std::forward<Args>(args)...);
+    }
+    template <typename T>
+    constexpr std::ostream& print(T&& arg)
+    {
+        return internal::put<internal::output, char, std::char_traits<char>>(std::cout, std::forward<T>(arg));
     }
     template <typename... Args>
     constexpr std::ostream& println(std::string_view fmt, Args&&... args)
     {
         return println(std::cout, fmt, std::forward<Args>(args)...);
     }
+    template <typename T>
+    constexpr std::ostream& println(T&& arg)
+    {
+        return print(std::forward<T>(arg)) << std::endl;
+    }
+    constexpr decltype(auto) println()
+    {
+        return print(std::endl<char, std::char_traits<char>>);
+    }
 
     //wchar_t IO
     template <typename... Args>
-    constexpr std::wistream& scan(std::wstring_view fmt, Args&&... args)
+    constexpr std::wistream& wscan(std::wstring_view fmt, Args&&... args)
     {
         return scan(std::wcin, fmt, std::forward<Args>(args)...);
     }
+    template <typename T>
+    constexpr std::wistream& wscan(T&& arg)
+    {
+        return internal::put<internal::input, wchar_t, std::char_traits<wchar_t>>(std::wcin, std::forward<T>(arg));
+    }
     template <typename... Args>
-    constexpr std::wostream& print(std::wstring_view fmt, Args&&... args)
+    constexpr std::wostream& wprint(std::wstring_view fmt, Args&&... args)
     {
         return print(std::wcout, fmt, std::forward<Args>(args)...);
     }
+    template <typename T>
+    constexpr std::wostream& wprint(T&& arg)
+    {
+        return internal::put<internal::output, wchar_t, std::char_traits<wchar_t>>(std::wcout, std::forward<T>(arg));
+    }
     template <typename... Args>
-    constexpr std::wostream& println(std::wstring_view fmt, Args&&... args)
+    constexpr std::wostream& wprintln(std::wstring_view fmt, Args&&... args)
     {
         return println(std::wcout, fmt, std::forward<Args>(args)...);
+    }
+    template <typename T>
+    constexpr std::wostream& wprintln(T&& arg)
+    {
+        return wprint(std::forward<T>(arg)) << std::endl;
+    }
+    constexpr decltype(auto) wprintln()
+    {
+        return wprint(std::endl<wchar_t, std::char_traits<wchar_t>>);
     }
 } // namespace sf
 

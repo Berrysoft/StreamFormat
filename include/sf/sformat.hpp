@@ -62,6 +62,54 @@ namespace sf
     {
         return internal::sprint<Char, Traits, Allocator>(fmt, std::forward<Args>(args)...);
     }
+
+    //char IO
+    template <typename... Args>
+    constexpr auto sscan(const std::string& str, std::string_view fmt, Args&&... args)
+    {
+        return sscan<char>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto sprint(std::string_view fmt, Args&&... args)
+    {
+        return sprint<char>(fmt, std::forward<Args>(args)...);
+    }
+
+    //wchar_t IO
+    template <typename... Args>
+    constexpr auto wsscan(const std::wstring& str, std::wstring_view fmt, Args&&... args)
+    {
+        return sscan<wchar_t>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto wsprint(std::wstring_view fmt, Args&&... args)
+    {
+        return sprint<wchar_t>(fmt, std::forward<Args>(args)...);
+    }
+
+    //char16_t IO
+    template <typename... Args>
+    constexpr auto u16sscan(const std::u16string& str, std::u16string_view fmt, Args&&... args)
+    {
+        return sscan<char16_t>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto u16sprint(std::u16string_view fmt, Args&&... args)
+    {
+        return sprint<char16_t>(fmt, std::forward<Args>(args)...);
+    }
+
+    //char32_t IO
+    template <typename... Args>
+    constexpr auto u16sscan(const std::u32string& str, std::u32string_view fmt, Args&&... args)
+    {
+        return sscan<char32_t>(str, fmt, std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    constexpr auto u16sprint(std::u32string_view fmt, Args&&... args)
+    {
+        return sprint<char32_t>(fmt, std::forward<Args>(args)...);
+    }
 } // namespace sf
 
 #endif // !SF_SFORMAT_HPP
