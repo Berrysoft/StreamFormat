@@ -301,11 +301,11 @@ namespace sf
             typedef string_view_io<IOState, Char, Traits> string_view_io_type;
 
         private:
-            const string_view_type& fmt;
+            string_view_type fmt;
             arg_list_type args;
 
         public:
-            constexpr format_string_view(const string_view_type& fmt, arg_list_type&& args) : fmt(fmt), args(std::move(args))
+            constexpr format_string_view(string_view_type fmt, arg_list_type&& args) : fmt(fmt), args(std::move(args))
             {
             }
             stream_type& operator()(stream_type& stream)
@@ -399,10 +399,16 @@ namespace sf
             }
         };
 
+        template <io_state IOState, typename Char, typename Traits>
+        constexpr stream_t<IOState, Char, Traits>& vformat(stream_t<IOState, Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, arg_list_t<stream_t<IOState, Char, Traits>>&& args)
+        {
+            return format_string_view<IOState, Char, Traits>{ fmt, std::move(args) }(stream);
+        }
+
         template <io_state IOState, typename Char, typename Traits, typename... Args>
         constexpr stream_t<IOState, Char, Traits>& format(stream_t<IOState, Char, Traits>& stream, std::basic_string_view<Char, Traits> fmt, Args&&... args)
         {
-            return format_string_view<IOState, Char, Traits>{ fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... } }(stream);
+            return vformat<IOState, Char, Traits>(stream, fmt, arg_list_t<stream_t<IOState, Char, Traits>>{ arg_io<IOState, Args, Char, Traits>(std::forward<Args>(args))... });
         }
 
         template <io_state IOState, typename Char, typename Traits, typename T>
@@ -418,10 +424,20 @@ namespace sf
     {
         return internal::format<internal::input, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
     }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
+    constexpr std::basic_istream<Char, Traits>& vscan(std::basic_istream<Char, Traits>& stream, String&& fmt, internal::arg_list_t<internal::stream_t<internal::input, Char, Traits>>&& args)
+    {
+        return internal::vformat<internal::input, Char, Traits>(stream, fmt, std::move(args));
+    }
     template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename... Args, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
     constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, String&& fmt, Args&&... args)
     {
         return internal::format<internal::output, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
+    constexpr std::basic_ostream<Char, Traits>& vprint(std::basic_ostream<Char, Traits>& stream, String&& fmt, internal::arg_list_t<internal::stream_t<internal::output, Char, Traits>>&& args)
+    {
+        return internal::vformat<internal::output, Char, Traits>(stream, fmt, std::move(args));
     }
     template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename... Args, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
     constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, String&& fmt, Args&&... args)
