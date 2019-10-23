@@ -1,1 +1,1 @@
-include("${CMAKE_CURRENT_LIST_DIR}/sf_targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/sf-targets.cmake")
