@@ -1,21 +1,44 @@
 cmake_minimum_required(VERSION 3.1)
-project(StreamFormat)
+project(stream_format)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(include)
 
-function(add_headers VAR)
-  set(headers ${${VAR}})
-  foreach (header ${ARGN})
-    set(headers ${headers} include/sf/${header})
-  endforeach()
-  set(${VAR} ${headers} PARENT_SCOPE)
-endfunction()
-
-add_headers(SF_HEADERS utility.hpp ansi.hpp color.hpp format.hpp sformat.hpp)
+file(GLOB SF_HEADERS "include/sf/*.hpp")
+add_library(stream_format INTERFACE)
 
 install(FILES ${SF_HEADERS} DESTINATION include/sf)
+install(TARGETS stream_format EXPORT sf_targets)
+
+include(CMakePackageConfigHelpers)
+
+export(EXPORT sf_targets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/sf/sf-targets.cmake"
+  NAMESPACE sf::
+)
+configure_file(cmake/sf-config.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/sf/sf-config.cmake"
+  COPYONLY
+)
+
+set(ConfigPackageLocation lib/sf)
+install(EXPORT sf_targets
+  FILE
+    sf-targets.cmake
+  NAMESPACE
+    sf::
+  DESTINATION
+    ${ConfigPackageLocation}
+)
+install(
+  FILES
+    cmake/sf-config.cmake
+  DESTINATION
+    ${ConfigPackageLocation}
+  COMPONENT
+    Devel
+)
 
 enable_testing()
 
