@@ -29,6 +29,7 @@
 #include <sf/utility.hpp>
 
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <string_view>
@@ -96,9 +97,6 @@ namespace sf
             }
         };
 
-        SF_CHAR_TEMPLATE(zero, '0')
-        SF_CHAR_TEMPLATE(nine, '9')
-
         template <typename Int, typename Char, typename Traits>
         constexpr Int stou(std::basic_string_view<Char, Traits> str) noexcept
         {
@@ -106,19 +104,10 @@ namespace sf
             for (Char c : str)
             {
                 result *= 10;
-                result += c - zero<Char>;
+                result += c - Char{ '0' };
             }
             return result;
         }
-
-        SF_CHAR_TEMPLATE(space, ' ')
-        SF_CHAR_TEMPLATE(tab, '\t')
-        SF_CHAR_TEMPLATE(vtab, '\v')
-        SF_CHAR_TEMPLATE(cr, '\r')
-        SF_CHAR_TEMPLATE(lf, '\n')
-
-        SF_CHAR_TEMPLATE(left_brace, '{')
-        SF_CHAR_TEMPLATE(right_brace, '}')
 
         //Input/Output string slice.
         template <io_state IOState, typename Char, typename Traits>
@@ -141,13 +130,13 @@ namespace sf
                     {
                         for (const Char& c : arg)
                         {
-                            if (Traits::eq(c, space<Char>))
+                            if (Traits::eq(c, Char{ ' ' }))
                             {
                                 while (true)
                                 {
                                     auto t = stream.peek();
                                     if (t != Traits::eof() &&
-                                        (Traits::eq(t, space<Char>) || Traits::eq(t, tab<Char>) || Traits::eq(t, vtab<Char>) || Traits::eq(t, cr<Char>) || Traits::eq(t, lf<Char>)))
+                                        (Traits::eq(t, Char{ ' ' }) || Traits::eq(t, Char{ '\t' }) || Traits::eq(t, Char{ '\v' }) || Traits::eq(t, Char{ '\r' }) || Traits::eq(t, Char{ '\n' })))
                                     {
                                         stream.get();
                                     }
@@ -179,21 +168,6 @@ namespace sf
             }
         };
 
-        SF_CHAR_TEMPLATE(colon, ':')
-        SF_CHAR_TEMPLATE(comma, ',')
-
-        SF_CHAR_TEMPLATE(cbla, 'b') //boolalpha
-        SF_CHAR_TEMPLATE(cdec, 'd') //dec
-        SF_CHAR_TEMPLATE(csci, 'e') //scientific
-        SF_CHAR_TEMPLATE(cfix, 'f') //fixed
-        SF_CHAR_TEMPLATE(cgen, 'g') //general
-        SF_CHAR_TEMPLATE(citn, 'i') //internal
-        SF_CHAR_TEMPLATE(clft, 'l') //left
-        SF_CHAR_TEMPLATE(coct, 'o') //oct
-        SF_CHAR_TEMPLATE(crit, 'r') //right
-        SF_CHAR_TEMPLATE(cupc, 'u') //uppercase
-        SF_CHAR_TEMPLATE(chex, 'x') //hex
-
         template <io_state IOState, typename Char, typename Traits, std::ios_base::fmtflags Flag, std::ios_base::fmtflags Base, Char Fill>
         std::ios_base::fmtflags stream_setf_w(stream_t<IOState, Char, Traits>& stream, int fmtf)
         {
@@ -224,17 +198,17 @@ namespace sf
         struct format_setf
         {
             inline static const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> methods = {
-                { cdec<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, zero<Char>> },
-                { coct<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, zero<Char>> },
-                { chex<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, zero<Char>> },
-                { csci<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
-                { cfix<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
-                { clft<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, space<Char>> },
-                { crit<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, space<Char>> },
-                { citn<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, space<Char>> },
-                { cbla<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
-                { cupc<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
-                { cgen<Char>, stream_setf<IOState, Char, Traits> }
+                { Char{ 'd' }, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, Char{ '0' }> },
+                { Char{ 'o' }, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, Char{ '0' }> },
+                { Char{ 'x' }, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, Char{ '0' }> },
+                { Char{ 'e' }, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
+                { Char{ 'f' }, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
+                { Char{ 'l' }, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, Char{ ' ' }> },
+                { Char{ 'r' }, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, Char{ ' ' }> },
+                { Char{ 'i' }, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, Char{ ' ' }> },
+                { Char{ 'b' }, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
+                { Char{ 'u' }, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
+                { Char{ 'g' }, stream_setf<IOState, Char, Traits> }
             };
         };
 
@@ -261,7 +235,7 @@ namespace sf
                 int_type offset = 0, index = 0;
                 for (; index <= length; index++)
                 {
-                    if (index == length || Traits::eq(fmts[index], comma<Char>))
+                    if (index == length || Traits::eq(fmts[index], Char{ ',' }))
                     {
                         Char fmtc = fmts[offset];
                         int fmtf = 0;
@@ -318,19 +292,19 @@ namespace sf
                         int_type off = offset;
                         for (index = offset; index < length; index++)
                         {
-                            if (Traits::eq(fmt[index], left_brace<Char>))
+                            if (Traits::eq(fmt[index], Char{ '{' }))
                             {
                                 index++;
-                                if (!(index < length && Traits::eq(fmt[index], left_brace<Char>)))
+                                if (!(index < length && Traits::eq(fmt[index], Char{ '{' })))
                                 {
                                     in_number = true;
                                     index--;
                                 }
                             }
-                            else if (Traits::eq(fmt[index], right_brace<Char>))
+                            else if (Traits::eq(fmt[index], Char{ '}' }))
                             {
                                 index++;
-                                if (!(index < length && Traits::eq(fmt[index], right_brace<Char>)))
+                                if (!(index < length && Traits::eq(fmt[index], Char{ '}' })))
                                 {
                                     index--;
                                     continue;
@@ -352,7 +326,7 @@ namespace sf
                     {
                         for (index = offset; index < length; index++)
                         {
-                            if (Traits::eq(fmt[index], right_brace<Char>))
+                            if (Traits::eq(fmt[index], Char{ '}' }))
                                 break;
                         }
                         if (index == length)
@@ -366,7 +340,7 @@ namespace sf
                             int_type ci;
                             for (ci = offset; ci < index; ci++)
                             {
-                                if (Traits::eq(fmt[ci], colon<Char>))
+                                if (Traits::eq(fmt[ci], Char{ ':' }))
                                 {
                                     break;
                                 }

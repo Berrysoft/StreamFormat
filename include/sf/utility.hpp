@@ -26,18 +26,14 @@
 #ifndef SF_UTILITY_HPP
 #define SF_UTILITY_HPP
 
-#ifndef SF_CHAR_TEMPLATE
-#define SF_CHAR_TEMPLATE(name, value)                     \
-    template <typename Char>                              \
-    inline constexpr Char name{};                         \
-    template <>                                           \
-    inline constexpr char name<char>{ value };            \
-    template <>                                           \
-    inline constexpr wchar_t name<wchar_t>{ L##value };   \
-    template <>                                           \
-    inline constexpr char16_t name<char16_t>{ u##value }; \
-    template <>                                           \
-    inline constexpr char32_t name<char32_t>{ U##value };
-#endif // !SF_CHAR_TEMPLATE
+#ifdef _MSVC_LANG
+#define SF_CXX_VERSION _MSVC_LANG
+#else
+#define SF_CXX_VERSION __cplusplus
+#endif // _MSVC_LANG
+
+#if SF_CXX_VERSION < 201703L
+#error "StreamFormat needs at least C++ 17"
+#endif // Less than C++ 17
 
 #endif // !SF_UTILITY_HPP
