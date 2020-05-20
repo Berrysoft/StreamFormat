@@ -105,8 +105,8 @@ namespace sf
             bool isback;
 
         public:
-            color() = default;
-            color(color_type value, bool isback) : value(value), isback(isback) {}
+            constexpr color() noexcept : value(), isback() {}
+            constexpr color(color_type value, bool isback) noexcept(std::is_nothrow_copy_constructible_v<color_type>) : value(value), isback(isback) {}
             template <typename Char, typename Traits>
             friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color& c)
             {
@@ -137,8 +137,8 @@ namespace sf
             sgr_chars sgr;
 
         public:
-            constexpr color_arg() : fore(user_default, false), back(user_default, true), sgr(normal) {}
-            constexpr color_arg(T&& arg, color_type fore, color_type back, sgr_chars sgr) : arg(arg), fore(fore, false), back(back, true), sgr(sgr) {}
+            constexpr color_arg() noexcept : fore(user_default, false), back(user_default, true), sgr(normal) {}
+            constexpr color_arg(T&& arg, color_type fore, color_type back, sgr_chars sgr) noexcept : arg(arg), fore(fore, false), back(back, true), sgr(sgr) {}
             template <typename Char, typename Traits>
             friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const color_arg& arg)
             {
@@ -150,12 +150,12 @@ namespace sf
     using color_type = internal::color_type;
 
     template <typename T>
-    constexpr internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal)
+    constexpr internal::color_arg<T> make_color_arg(T&& arg, color_type fore, color_type back = user_default, sgr_chars sgr = normal) noexcept
     {
         return internal::color_arg<T>(std::forward<T>(arg), fore, back, sgr);
     }
     template <typename T>
-    constexpr internal::color_arg<T> make_color_arg(T&& arg, sgr_chars sgr)
+    constexpr internal::color_arg<T> make_color_arg(T&& arg, sgr_chars sgr) noexcept
     {
         return internal::color_arg<T>(std::forward<T>(arg), user_default, user_default, sgr);
     }

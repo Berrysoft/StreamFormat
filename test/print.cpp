@@ -13,7 +13,7 @@ int main()
     print(oss, "{}\n", "Hello, world!");
     print(oss, "{0:b,l8}", true);
     println(oss, "");
-    oss << sprint("{0}{{{1}}}{0}\n", "123", static_cast<const char*>("321"));
+    oss << sprint("{0}{{{1}}}{0}\n", "123", "321");
     oss << sprint("{}", 123.456) << endl;
     if (oss.str() == "Test\n\n0xFEE1DEAD\nHello, world!\ntrue    \n123{321}123\n123.456\n")
     {

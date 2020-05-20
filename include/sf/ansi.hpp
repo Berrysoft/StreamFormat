@@ -72,7 +72,7 @@ namespace sf
             std::tuple<Args...> args;
 
         public:
-            ansi_control(C endc, Args&&... args) : endc(endc), args(std::forward<Args>(args)...) {}
+            constexpr ansi_control(C endc, Args&&... args) noexcept : endc(endc), args(std::forward<Args>(args)...) {}
             template <typename Char, typename Traits = std::char_traits<Char>>
             friend constexpr std::basic_ostream<Char, Traits>& operator<<(std::basic_ostream<Char, Traits>& stream, const ansi_control& ctrl)
             {
@@ -104,11 +104,11 @@ namespace sf
         SF_CHAR_TEMPLATE(rcp_end, 'u')
     } // namespace internal
 
-#define SF_MAKE_MOVE(name, charname)                                                \
-    template <typename Char>                                                        \
-    constexpr internal::ansi_control<Char, std::size_t> name(std::size_t n = 1)     \
-    {                                                                               \
-        return internal::make_ansi_control(internal::charname<Char>, std::move(n)); \
+#define SF_MAKE_MOVE(name, charname)                                                     \
+    template <typename Char>                                                             \
+    constexpr internal::ansi_control<Char, std::size_t> name(std::size_t n = 1) noexcept \
+    {                                                                                    \
+        return internal::make_ansi_control(internal::charname<Char>, std::move(n));      \
     }
 
     SF_MAKE_MOVE(make_cursor_upward, cuu_end)
@@ -121,7 +121,7 @@ namespace sf
     SF_MAKE_MOVE(make_cursor_abs_line, cha_end)
 
     template <typename Char>
-    constexpr internal::ansi_control<Char, std::size_t, std::size_t> make_cursor_set_pos(std::size_t line = 1, std::size_t index = 1)
+    constexpr internal::ansi_control<Char, std::size_t, std::size_t> make_cursor_set_pos(std::size_t line = 1, std::size_t index = 1) noexcept
     {
         return internal::make_ansi_control(internal::cup_end<Char>, std::move(line), std::move(index));
     }
@@ -135,13 +135,13 @@ namespace sf
     };
 
     template <typename Char>
-    constexpr internal::ansi_control<Char, int> make_erase_screen(erase_opt opt)
+    constexpr internal::ansi_control<Char, int> make_erase_screen(erase_opt opt) noexcept
     {
         return internal::make_ansi_control(internal::ed_end<Char>, static_cast<int>(opt));
     }
 
     template <typename Char>
-    constexpr internal::ansi_control<Char, int> make_erase_line(erase_opt opt)
+    constexpr internal::ansi_control<Char, int> make_erase_line(erase_opt opt) noexcept
     {
         return internal::make_ansi_control(internal::el_end<Char>, static_cast<int>(opt));
     }
@@ -150,24 +150,24 @@ namespace sf
     SF_MAKE_MOVE(make_scroll_down, sd_end)
 
     template <typename Char, typename... Args>
-    constexpr internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args)
+    constexpr internal::ansi_control<Char, Args...> make_sgr_control(Args&&... args) noexcept
     {
         return internal::make_ansi_control(internal::sgr_end<Char>, std::forward<Args>(args)...);
     }
 
     template <typename Char>
-    constexpr internal::ansi_control<Char, int> make_cursor_pos_report()
+    constexpr internal::ansi_control<Char, int> make_cursor_pos_report() noexcept
     {
         return internal::make_ansi_control(internal::dsr_end<Char>, 6);
     }
 
     template <typename Char>
-    constexpr internal::ansi_control<Char> make_cursor_save()
+    constexpr internal::ansi_control<Char> make_cursor_save() noexcept
     {
         return internal::make_ansi_control(internal::scp_end<Char>);
     }
     template <typename Char>
-    constexpr internal::ansi_control<Char> make_cursor_restore()
+    constexpr internal::ansi_control<Char> make_cursor_restore() noexcept
     {
         return internal::make_ansi_control(internal::rcp_end<Char>);
     }

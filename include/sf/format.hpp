@@ -52,12 +52,12 @@ namespace sf
         template <typename Char, typename Traits>
         struct stream<input, Char, Traits>
         {
-            typedef std::basic_istream<Char, Traits> type;
+            using type = std::basic_istream<Char, Traits>;
         };
         template <typename Char, typename Traits>
         struct stream<output, Char, Traits>
         {
-            typedef std::basic_ostream<Char, Traits> type;
+            using type = std::basic_ostream<Char, Traits>;
         };
 
         template <io_state IOState, typename Char, typename Traits>
@@ -66,8 +66,8 @@ namespace sf
         template <typename Stream>
         struct arg
         {
-            typedef std::function<Stream&(Stream&)> type;
-            typedef std::vector<type> list_type;
+            using type = std::function<Stream&(Stream&)>;
+            using list_type = std::vector<type>;
         };
 
         template <typename Stream>
@@ -80,14 +80,13 @@ namespace sf
         class arg_io
         {
         public:
-            typedef stream_t<IOState, Char, Traits> stream_type;
+            using stream_type = stream_t<IOState, Char, Traits>;
 
         private:
             T arg;
 
         public:
-            arg_io(T&& arg) : arg(std::forward<T>(arg)) {}
-            template <typename = void>
+            arg_io(T&& arg) noexcept(std::is_nothrow_move_constructible_v<T>) : arg(std::forward<T>(arg)) {}
             constexpr stream_type& operator()(stream_type& stream)
             {
                 if constexpr (IOState == input)
@@ -101,10 +100,10 @@ namespace sf
         SF_CHAR_TEMPLATE(nine, '9')
 
         template <typename Int, typename Char, typename Traits>
-        constexpr Int stou(const std::basic_string_view<Char, Traits>& str)
+        constexpr Int stou(std::basic_string_view<Char, Traits> str) noexcept
         {
             Int result(0);
-            for (const Char& c : str)
+            for (Char c : str)
             {
                 result *= 10;
                 result += c - zero<Char>;
@@ -133,7 +132,7 @@ namespace sf
             string_view_type arg;
 
         public:
-            string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
+            constexpr string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
             stream_type& operator()(stream_type& stream)
             {
                 if constexpr (IOState == io_state::input)
@@ -224,40 +223,38 @@ namespace sf
         template <io_state IOState, typename Char, typename Traits>
         struct format_setf
         {
-            static const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> methods;
-        };
-        template <io_state IOState, typename Char, typename Traits>
-        const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> format_setf<IOState, Char, Traits>::methods = {
-            { cdec<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, zero<Char>> },
-            { coct<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, zero<Char>> },
-            { chex<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, zero<Char>> },
-            { csci<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
-            { cfix<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
-            { clft<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, space<Char>> },
-            { crit<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, space<Char>> },
-            { citn<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, space<Char>> },
-            { cbla<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
-            { cupc<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
-            { cgen<Char>, stream_setf<IOState, Char, Traits> }
+            inline static const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> methods = {
+                { cdec<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, zero<Char>> },
+                { coct<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, zero<Char>> },
+                { chex<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, zero<Char>> },
+                { csci<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
+                { cfix<Char>, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
+                { clft<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, space<Char>> },
+                { crit<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, space<Char>> },
+                { citn<Char>, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, space<Char>> },
+                { cbla<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
+                { cupc<Char>, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
+                { cgen<Char>, stream_setf<IOState, Char, Traits> }
+            };
         };
 
         template <io_state IOState, typename Char, typename Traits>
         class format_arg_io
         {
         public:
-            typedef stream_t<IOState, Char, Traits> stream_type;
-            typedef arg_t<stream_type> arg_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
-            typedef typename string_view_type::size_type int_type;
-            typedef format_setf<IOState, Char, Traits> fsetf_type;
+            using stream_type = stream_t<IOState, Char, Traits>;
+            using arg_type = arg_t<stream_type>;
+            using string_view_type = std::basic_string_view<Char, Traits>;
+            using int_type = typename string_view_type::size_type;
+            using fsetf_type = format_setf<IOState, Char, Traits>;
 
         private:
             arg_type& ori;
-            const string_view_type& fmts;
+            string_view_type fmts;
 
         public:
-            format_arg_io(arg_type& ori, const string_view_type& fmts) : ori(ori), fmts(fmts) {}
-            stream_type& operator()(stream_type& stream)
+            constexpr format_arg_io(arg_type& ori, string_view_type fmts) noexcept : ori(ori), fmts(fmts) {}
+            constexpr stream_type& operator()(stream_type& stream)
             {
                 std::ios_base::fmtflags oldf{};
                 int_type length = fmts.length();
@@ -293,22 +290,22 @@ namespace sf
         class format_string_view
         {
         public:
-            typedef stream_t<IOState, Char, Traits> stream_type;
-            typedef arg_t<stream_type> arg_type;
-            typedef arg_list_t<stream_type> arg_list_type;
-            typedef std::basic_string_view<Char, Traits> string_view_type;
-            typedef typename string_view_type::size_type int_type;
-            typedef string_view_io<IOState, Char, Traits> string_view_io_type;
+            using stream_type = stream_t<IOState, Char, Traits>;
+            using arg_type = arg_t<stream_type>;
+            using arg_list_type = arg_list_t<stream_type>;
+            using string_view_type = std::basic_string_view<Char, Traits>;
+            using int_type = typename string_view_type::size_type;
+            using string_view_io_type = string_view_io<IOState, Char, Traits>;
 
         private:
             string_view_type fmt;
             arg_list_type args;
 
         public:
-            constexpr format_string_view(string_view_type fmt, arg_list_type&& args) : fmt(fmt), args(std::move(args))
+            constexpr format_string_view(string_view_type fmt, arg_list_type&& args) noexcept : fmt(fmt), args(std::move(args))
             {
             }
-            stream_type& operator()(stream_type& stream)
+            constexpr stream_type& operator()(stream_type& stream)
             {
                 int_type offset = 0, index = 0;
                 const int_type length = fmt.length();

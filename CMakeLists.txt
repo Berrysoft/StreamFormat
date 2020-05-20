@@ -14,8 +14,8 @@ target_include_directories(stream_format
 )
 
 install(FILES ${SF_HEADERS} DESTINATION include/sf)
-install(TARGETS stream_format EXPORT sf_targets)
-install(EXPORT sf_targets DESTINATION lib/cmake/sf)
+install(TARGETS stream_format EXPORT sf-targets)
+install(EXPORT sf-targets DESTINATION lib/cmake/sf)
 install(FILES cmake/sf-config.cmake DESTINATION lib/cmake/sf)
 
 option(BUILD_TESTS "Build tests." ON)
