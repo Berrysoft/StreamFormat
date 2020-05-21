@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(stream_format CXX)
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "Standard of C++ language")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
 
 file(GLOB SF_HEADERS "include/sf/*.hpp")
 add_library(stream_format INTERFACE)
