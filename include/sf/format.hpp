@@ -395,6 +395,11 @@ namespace sf
     {
         return internal::format<internal::input, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
     }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
+    constexpr std::basic_istream<Char, Traits>& scan(std::basic_istream<Char, Traits>& stream, T&& arg)
+    {
+        return internal::put<internal::input, Char, Traits>(stream, std::forward<T>(arg));
+    }
     template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
     constexpr std::basic_istream<Char, Traits>& vscan(std::basic_istream<Char, Traits>& stream, String&& fmt, internal::arg_list_t<internal::stream_t<internal::input, Char, Traits>>&& args)
     {
@@ -405,6 +410,11 @@ namespace sf
     {
         return internal::format<internal::output, Char, Traits>(stream, fmt, std::forward<Args>(args)...);
     }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
+    constexpr std::basic_ostream<Char, Traits>& print(std::basic_ostream<Char, Traits>& stream, T&& arg)
+    {
+        return internal::put<internal::output, Char, Traits>(stream, std::forward<T>(arg));
+    }
     template <typename Char, typename Traits = std::char_traits<Char>, typename String, typename = std::enable_if_t<std::is_convertible_v<String, std::basic_string_view<Char, Traits>>>>
     constexpr std::basic_ostream<Char, Traits>& vprint(std::basic_ostream<Char, Traits>& stream, String&& fmt, internal::arg_list_t<internal::stream_t<internal::output, Char, Traits>>&& args)
     {
@@ -414,6 +424,11 @@ namespace sf
     constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, String&& fmt, Args&&... args)
     {
         return internal::format<internal::output, Char, Traits>(stream, fmt, std::forward<Args>(args)...) << std::endl;
+    }
+    template <typename Char, typename Traits = std::char_traits<Char>, typename T>
+    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream, T&& arg)
+    {
+        return internal::put<internal::output, Char, Traits>(stream, std::forward<T>(arg)) << std::endl;
     }
 
     //char IO
