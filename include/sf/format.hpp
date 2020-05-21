@@ -430,6 +430,11 @@ namespace sf
     {
         return internal::put<internal::output, Char, Traits>(stream, std::forward<T>(arg)) << std::endl;
     }
+    template <typename Char, typename Traits = std::char_traits<Char>>
+    constexpr std::basic_ostream<Char, Traits>& println(std::basic_ostream<Char, Traits>& stream)
+    {
+        return stream << std::endl;
+    }
 
     //char IO
     template <typename... Args>
