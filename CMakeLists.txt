@@ -18,9 +18,9 @@ install(TARGETS stream_format EXPORT sf-targets)
 install(EXPORT sf-targets DESTINATION lib/cmake/sf)
 install(FILES cmake/sf-config.cmake DESTINATION lib/cmake/sf)
 
-option(BUILD_TESTS "Build tests." ON)
+option(SF_BUILD_TESTS "Build tests." ON)
 
-if(${BUILD_TESTS})
+if(${SF_BUILD_TESTS})
 enable_testing()
 
 add_executable(print test/print.cpp)
