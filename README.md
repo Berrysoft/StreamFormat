@@ -8,7 +8,7 @@ The usage of `print` function is like .NET `Console.Write`:
 ``` c++
 sf::print("Hello, {0}!\n", "world");            //Hello, world!
 sf::print("Meaning of the life: {0}.\n", 42);   //Meaning of the life: 42.
-sf::print("0x{0:x8}\n", 4276215469);            //0xfee1dead
+sf::print("{0:x8,s}\n", 4276215469);            //0xfee1dead
 ```
 And you can write it like Python:
 ``` c++

@@ -8,7 +8,7 @@
 ``` c++
 sf::print("Hello, {0}!\n", "world");            //Hello, world!
 sf::print("生命、宇宙以及一切：{0}\n", 42);   //生命、宇宙以及一切：42
-sf::print("0x{0:x8}\n", 4276215469);            //0xfee1dead
+sf::print("{0:x8,s}\n", 4276215469);            //0xfee1dead
 ```
 也可以写起来像Python：
 ``` c++
