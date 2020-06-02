@@ -27,13 +27,13 @@
 #define SF_UTILITY_HPP
 
 #ifdef _MSVC_LANG
-#define SF_CXX_VERSION _MSVC_LANG
+    #define SF_CXX_VERSION _MSVC_LANG
 #else
-#define SF_CXX_VERSION __cplusplus
+    #define SF_CXX_VERSION __cplusplus
 #endif // _MSVC_LANG
 
 #if SF_CXX_VERSION < 201703L
-#error "StreamFormat needs at least C++ 17"
+    #error "StreamFormat needs at least C++ 17"
 #endif // Less than C++ 17
 
 #endif // !SF_UTILITY_HPP
