@@ -9,13 +9,13 @@ int main()
     print(oss, "Test\n");
     char c = '\n';
     print(oss, c);
-    println(oss, "0x{:x8,u}", 4276215469);
+    println(oss, "{:x8,s}", 4276215469);
     print(oss, "{}\n", "Hello, world!");
     print(oss, "{0:b,l8}", true);
     println(oss, "");
     oss << sprint("{0}{{{1}}}{0}\n", "123", "321");
     oss << sprint("{}", 123.456) << endl;
-    if (oss.str() == "Test\n\n0xFEE1DEAD\nHello, world!\ntrue    \n123{321}123\n123.456\n")
+    if (oss.str() == "Test\n\n0xfee1dead\nHello, world!\ntrue    \n123{321}123\n123.456\n")
     {
         println("Success.");
     }

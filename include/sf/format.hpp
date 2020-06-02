@@ -208,6 +208,7 @@ namespace sf
                 { Char{ 'i' }, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, Char{ ' ' }> },
                 { Char{ 'b' }, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
                 { Char{ 'u' }, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
+                { Char{ 's' }, stream_setf_f<IOState, Char, Traits, std::ios_base::showbase> },
                 { Char{ 'g' }, stream_setf<IOState, Char, Traits> }
             };
         };
