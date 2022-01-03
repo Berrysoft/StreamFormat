@@ -31,9 +31,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <string_view>
-#include <tuple>
 #include <vector>
 
 namespace sf
@@ -121,7 +119,7 @@ namespace sf
             string_view_type arg;
 
         public:
-            constexpr string_view_io(string_view_type&& arg) : arg(std::move(arg)) {}
+            constexpr string_view_io(string_view_type arg) : arg(arg) {}
             stream_type& operator()(stream_type& stream)
             {
                 if constexpr (IOState == io_state::input)
@@ -168,26 +166,21 @@ namespace sf
             }
         };
 
-        template <io_state IOState, typename Char, typename Traits, std::ios_base::fmtflags Flag, std::ios_base::fmtflags Base, Char Fill>
-        std::ios_base::fmtflags stream_setf_w(stream_t<IOState, Char, Traits>& stream, int fmtf)
+        template <io_state IOState, typename Char, typename Traits>
+        std::ios_base::fmtflags stream_setf_w(std::ios_base::fmtflags Flag, std::ios_base::fmtflags Base, Char Fill, stream_t<IOState, Char, Traits>& stream, int fmtf)
         {
             std::ios_base::fmtflags oldf = stream.setf(Flag, Base);
             stream.fill(Fill);
             stream.width(fmtf);
             return oldf;
         }
-        template <io_state IOState, typename Char, typename Traits, std::ios_base::fmtflags Flag>
-        std::ios_base::fmtflags stream_setf_f(stream_t<IOState, Char, Traits>& stream, int)
+        template <io_state IOState, typename Char, typename Traits>
+        std::ios_base::fmtflags stream_setf_f(std::ios_base::fmtflags Flag, stream_t<IOState, Char, Traits>& stream, int)
         {
             return stream.setf(Flag);
         }
         template <io_state IOState, typename Char, typename Traits>
-        std::ios_base::fmtflags stream_setf(stream_t<IOState, Char, Traits>&, int)
-        {
-            return static_cast<std::ios_base::fmtflags>(0);
-        }
-        template <io_state IOState, typename Char, typename Traits, std::ios_base::fmtflags Flag, std::ios_base::fmtflags Base>
-        std::ios_base::fmtflags stream_setf_p(stream_t<IOState, Char, Traits>& stream, int fmtf)
+        std::ios_base::fmtflags stream_setf_p(std::ios_base::fmtflags Flag, std::ios_base::fmtflags Base, stream_t<IOState, Char, Traits>& stream, int fmtf)
         {
             std::ios_base::fmtflags oldf = stream.setf(Flag, Base);
             stream.precision(fmtf);
@@ -195,23 +188,37 @@ namespace sf
         }
 
         template <io_state IOState, typename Char, typename Traits>
-        struct format_setf
+        std::ios_base::fmtflags stream_setf(Char fmtc, stream_t<IOState, Char, Traits>& stream, int fmtf)
         {
-            inline static const std::map<Char, std::function<std::ios_base::fmtflags(stream_t<IOState, Char, Traits>&, int)>> methods = {
-                { Char{ 'd' }, stream_setf_w<IOState, Char, Traits, std::ios_base::dec, std::ios_base::basefield, Char{ '0' }> },
-                { Char{ 'o' }, stream_setf_w<IOState, Char, Traits, std::ios_base::oct, std::ios_base::basefield, Char{ '0' }> },
-                { Char{ 'x' }, stream_setf_w<IOState, Char, Traits, std::ios_base::hex, std::ios_base::basefield, Char{ '0' }> },
-                { Char{ 'e' }, stream_setf_p<IOState, Char, Traits, std::ios_base::scientific, std::ios_base::floatfield> },
-                { Char{ 'f' }, stream_setf_p<IOState, Char, Traits, std::ios_base::fixed, std::ios_base::floatfield> },
-                { Char{ 'l' }, stream_setf_w<IOState, Char, Traits, std::ios_base::left, std::ios_base::adjustfield, Char{ ' ' }> },
-                { Char{ 'r' }, stream_setf_w<IOState, Char, Traits, std::ios_base::right, std::ios_base::adjustfield, Char{ ' ' }> },
-                { Char{ 'i' }, stream_setf_w<IOState, Char, Traits, std::ios_base::internal, std::ios_base::adjustfield, Char{ ' ' }> },
-                { Char{ 'b' }, stream_setf_f<IOState, Char, Traits, std::ios_base::boolalpha> },
-                { Char{ 'u' }, stream_setf_f<IOState, Char, Traits, std::ios_base::uppercase> },
-                { Char{ 's' }, stream_setf_f<IOState, Char, Traits, std::ios_base::showbase> },
-                { Char{ 'g' }, stream_setf<IOState, Char, Traits> }
-            };
-        };
+            switch (fmtc)
+            {
+            case Char{ 'd' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::dec, std::ios_base::basefield, Char{ '0' }, stream, fmtf);
+            case Char{ 'o' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::oct, std::ios_base::basefield, Char{ '0' }, stream, fmtf);
+            case Char{ 'x' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::hex, std::ios_base::basefield, Char{ '0' }, stream, fmtf);
+            case Char{ 'e' }:
+                return stream_setf_p<IOState, Char, Traits>(std::ios_base::scientific, std::ios_base::floatfield, stream, fmtf);
+            case Char{ 'f' }:
+                return stream_setf_p<IOState, Char, Traits>(std::ios_base::fixed, std::ios_base::floatfield, stream, fmtf);
+            case Char{ 'l' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::left, std::ios_base::adjustfield, Char{ ' ' }, stream, fmtf);
+            case Char{ 'r' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::right, std::ios_base::adjustfield, Char{ ' ' }, stream, fmtf);
+            case Char{ 'i' }:
+                return stream_setf_w<IOState, Char, Traits>(std::ios_base::internal, std::ios_base::adjustfield, Char{ ' ' }, stream, fmtf);
+            case Char{ 'b' }:
+                return stream_setf_f<IOState, Char, Traits>(std::ios_base::boolalpha, stream, fmtf);
+            case Char{ 'u' }:
+                return stream_setf_f<IOState, Char, Traits>(std::ios_base::uppercase, stream, fmtf);
+            case Char{ 's' }:
+                return stream_setf_f<IOState, Char, Traits>(std::ios_base::showbase, stream, fmtf);
+            case Char{ 'g' }:
+            default:
+                return static_cast<std::ios_base::fmtflags>(0);
+            }
+        }
 
         template <io_state IOState, typename Char, typename Traits>
         class format_arg_io
@@ -221,7 +228,6 @@ namespace sf
             using arg_type = arg_t<stream_type>;
             using string_view_type = std::basic_string_view<Char, Traits>;
             using int_type = typename string_view_type::size_type;
-            using fsetf_type = format_setf<IOState, Char, Traits>;
 
         private:
             arg_type& ori;
@@ -245,11 +251,7 @@ namespace sf
                         {
                             fmtf = stou<int, Char, Traits>(fmts.substr(offset + 1, len));
                         }
-                        auto it = fsetf_type::methods.find(fmtc);
-                        if (it != fsetf_type::methods.end())
-                        {
-                            oldf |= (it->second)(stream, fmtf);
-                        }
+                        oldf |= stream_setf<IOState, Char, Traits>(fmtc, stream, fmtf);
                         offset = index + 1;
                     }
                 }
